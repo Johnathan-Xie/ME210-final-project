@@ -1,3 +1,4 @@
+/*
 #include <Arduino.h>
 #include "Magnetometer.h"
 const int MAGNETOMETER_DECLINATION_DEGS = 12;
@@ -21,3 +22,4 @@ void loop() {
   Serial.println(heading);
   delay(200);
 }
+*/
