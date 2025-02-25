@@ -8,12 +8,14 @@
 void set_target_location(float left_centimeters, float back_centimeters, float orientation_degrees) {
     this->target_left_centimeters = left_centimeters;
     this->target_back_centimeters = back_centimeters;
-    this->orientation_degrees = orientation_degrees - this->reference_zero_orientation;
+    this->target_orientation_degrees = orientation_degrees - this->reference_zero_orientation;
 }
-void set_movement(float drive, float strafe, float twist) {
-    float heading = get_last_measured_orientation_degrees() * (PI/180.0);
-    drive = strafe * cos(heading) - drive * sin(heading);
-    strafe = strafe * sin(heading) + drive * cos(heading);
+void set_movement(float drive, float strafe, float twist, bool heading_correction = true) {
+    if (heading_correction){
+        float heading = get_last_measured_orientation_degrees() * (PI/180.0);
+        drive = strafe * cos(heading) - drive * sin(heading);
+        strafe = strafe * sin(heading) + drive * cos(heading);
+    }
 
     float[] speeds = {
             (drive + strafe + twist),
