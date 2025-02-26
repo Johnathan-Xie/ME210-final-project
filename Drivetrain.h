@@ -8,8 +8,8 @@
 class Drivetrain {
   public:
     Drivetrain(
-      Motor front_left_motor, Motor front_right_motor, Motor back_left_motor, Motor back_right_motor,
-      Magnetometer magnetometer, Ultrasonic left_ultrasonic, Ultrasonic back_ultrasonic,
+      Motor& front_left_motor, Motor& front_right_motor, Motor& back_left_motor, Motor& back_right_motor,
+      Magnetometer& magnetometer, Ultrasonic& left_ultrasonic, Ultrasonic& back_ultrasonic,
       float reference_zero_orientation,
       float max_allowed_back_centimeters_change = 3.0, float max_allowed_left_centimeters_change = 3.0, float max_allowed_orientation_degrees_change = 5.0,
       float begin_linear_slowdown_back_centimeters = 5.0, float stop_back_centimeters = 1.0,

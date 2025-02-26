@@ -64,12 +64,12 @@ void Magnetometer::SetDeclination( int declination_degs , int declination_mins, 
   {
     // North and East are positive   
     case 'E': 
-      declination_offset_radians = ( declination_degs + (1/60 * declination_mins)) * (M_PI / 180);
+      declination_offset_radians = ( declination_degs + (declination_mins / 60.0)) * (M_PI / 180.0);
       break;
       
     // South and West are negative    
     case 'W':
-      declination_offset_radians =  0 - (( declination_degs + (1/60 * declination_mins) ) * (M_PI / 180));
+      declination_offset_radians =  0 - (( declination_degs + (declination_mins / 60.0) ) * (M_PI / 180.0));
       break;
   } 
 }

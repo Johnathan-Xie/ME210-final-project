@@ -11,8 +11,10 @@ void Drivetrain::set_target_location(float left_centimeters, float back_centimet
 void Drivetrain::set_movement(float drive, float strafe, float twist, bool heading_correction = true) {
     if (heading_correction){
         float heading = get_last_measured_orientation_degrees() * (PI/180.0);
-        drive = strafe * cos(heading) - drive * sin(heading);
-        strafe = strafe * sin(heading) + drive * cos(heading);
+        float orig_drive = drive;
+        float orig_strafe = strafe;
+        drive = orig_drive * cos(heading) - orig_strafe * sin(heading);
+        strafe = orig_drive * sin(heading) + orig_strafe * cos(heading);
     }
     Log.info("drive: %.3f", drive);
     Log.info("strafe: %.3f", strafe);
@@ -24,24 +26,26 @@ void Drivetrain::set_movement(float drive, float strafe, float twist, bool headi
             (drive - strafe + twist),
             (drive + strafe - twist)
     };
+    const int num_motors = sizeof(speeds) / sizeof(speeds[0]);
 
     //apply signs in case values need reversal
     int signs[] = {1, -1, 1, -1};
-    for(int i = 0; i < sizeof(signs) / sizeof(signs[0]); i++)
+    for(int i = 0; i < num_motors; i++) {
         speeds[i] = speeds[i] * signs[i];
+    }
 
     // Because we are adding and motors only take values between
     // [-1,1] we may need to normalize them.
     //Find maximum value for speed normalization
     float max_speed = abs(speeds[0]);
-    for(int i = 1; i < sizeof(speeds) / sizeof(speeds[0]); i++) {
+    for(int i = 1; i < num_motors; i++) {
         max_speed = max(max_speed, abs(speeds[i]));
     }
 
     // If and only if the maximum is outside of the range we want it to be,
     // normalize all the other speeds based on the given speed value.
     if (max_speed > 1)
-        for (int i = 0; i < sizeof(speeds) / sizeof(speeds[0]); i++) {
+        for (int i = 0; i < num_motors; i++) {
             speeds[i] /= max_speed;
         }
             

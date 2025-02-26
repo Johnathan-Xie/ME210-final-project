@@ -19,10 +19,10 @@ void Motor::set_speed(float speed) {
   int pwm_value;
   if (speed > 0) {
     forward = true;
-    pwm_value = (int)((PWM_MAX_VALUE - PWM_MIN_VALUE) * speed + PWM_MIN_VALUE);
+    pwm_value = (int)((PWM_MAX_VALUE - PWM_MIN_VALUE) * abs(speed) + PWM_MIN_VALUE);
   } else {
     forward = false;
-    pwm_value = (int)((PWM_MAX_VALUE - PWM_MIN_VALUE) * speed + PWM_MIN_VALUE);
+    pwm_value = (int)((PWM_MAX_VALUE - PWM_MIN_VALUE) * abs(speed) + PWM_MIN_VALUE);
   }
   if (this->reversed) {
     forward = !forward;
