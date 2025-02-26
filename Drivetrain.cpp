@@ -1,23 +1,20 @@
 #include <Arduino.h>
-#include "Motor.h"
-#include "Ultrasonic.h"
-#include "Magnetometer.h"
 
 #include "Drivetrain.h"
 
-void set_target_location(float left_centimeters, float back_centimeters, float orientation_degrees) {
+void Drivetrain::set_target_location(float left_centimeters, float back_centimeters, float orientation_degrees) {
     this->target_left_centimeters = left_centimeters;
     this->target_back_centimeters = back_centimeters;
     this->target_orientation_degrees = orientation_degrees - this->reference_zero_orientation;
 }
-void set_movement(float drive, float strafe, float twist, bool heading_correction = true) {
+void Drivetrain::set_movement(float drive, float strafe, float twist, bool heading_correction = true) {
     if (heading_correction){
         float heading = get_last_measured_orientation_degrees() * (PI/180.0);
         drive = strafe * cos(heading) - drive * sin(heading);
         strafe = strafe * sin(heading) + drive * cos(heading);
     }
 
-    float[] speeds = {
+    float speeds[] = {
             (drive + strafe + twist),
             (drive - strafe - twist),
             (drive - strafe + twist),
@@ -25,22 +22,22 @@ void set_movement(float drive, float strafe, float twist, bool heading_correctio
     };
 
     //apply signs in case values need reversal
-    int[] signs = {1, -1, 1, -1};
-    for(int i=0; i<speeds.length; i++)
+    int signs[] = {1, -1, 1, -1};
+    for(int i = 0; i < sizeof(signs) / sizeof(signs[0]); i++)
         speeds[i] = speeds[i] * signs[i];
 
     // Because we are adding and motors only take values between
     // [-1,1] we may need to normalize them.
     //Find maximum value for speed normalization
     float max_speed = abs(speeds[0]);
-    for(int i=1; i<speeds.length; i++) {
-        max_speed = max(max_speed, speeds[i]);
+    for(int i = 1; i < sizeof(speeds) / sizeof(speeds[0]); i++) {
+        max_speed = max(max_speed, abs(speeds[i]));
     }
 
     // If and only if the maximum is outside of the range we want it to be,
     // normalize all the other speeds based on the given speed value.
     if (max_speed > 1)
-        for (int i=0; i<speeds.length; i++) {
+        for (int i = 0; i < sizeof(speeds) / sizeof(speeds[0]); i++) {
             speeds[i] /= max_speed;
         }
             
@@ -51,35 +48,52 @@ void set_movement(float drive, float strafe, float twist, bool heading_correctio
     this->back_right_motor.set_speed(speeds[3]);
 }
 
-float get_left_distance_to_target() {
-    return this->target_left_centimeters - this->last_measured_left_centimeters;
+float Drivetrain::get_left_distance_to_target_location() {
+    return abs(this->target_left_centimeters - this->last_measured_left_centimeters);
 }
 
-float get_back_distance_to_target() {
-    return this->target_back_centimeters - this->last_measured_back_centimeters;
+float Drivetrain::get_back_distance_to_target_location() {
+    return abs(this->target_back_centimeters - this->last_measured_back_centimeters);
 }
 
-float get_distance_to_target_location() {
+float Drivetrain::get_degrees_to_target_orientation() {
+    return abs(this->target_orientation_degrees - this->last_measured_orientation_degrees);
+}
+/*
+float Drivetrain::get_distance_to_target_location() {
     return sqrt(
-        sq(this->get_left_distance_to_target()) +
-        sq(this->get_back_distance_to_target())
+        sq(this->get_left_distance_to_target_location()) +
+        sq(this->get_back_distance_to_target_location())
     );
 }
-float get_degrees_to_target_orientation() {
-    return this->target_orientation_degrees - this->last_measured_orientation_degrees;
-}
+*/
 
-void update_measurements() {
+void Drivetrain::update_measurements() {
     float new_left_centimeters = (float)this->left_ultrasonic.read();
-    float new_back_centimeters = (float)this->right_ultrasonic.read();
-    float new_orientation_degrees = magnetometer.getHeadingDegrees() - this->reference_zero_orientation;
-    if (abs(new_left_centimeters - this->last_measured_))
+    float new_back_centimeters = (float)this->back_ultrasonic.read();
+    float new_orientation_degrees = magnetometer.GetHeadingDegrees() - this->reference_zero_orientation;
+    if (abs(new_left_centimeters - this->last_measured_left_centimeters) <= this->max_allowed_left_centimeters_change) {
+        this->last_measured_left_centimeters = new_left_centimeters;
+    }
+    if (abs(new_back_centimeters - this->last_measured_back_centimeters) <= this->max_allowed_back_centimeters_change) {
+        this->last_measured_back_centimeters = new_back_centimeters;
+    }
+    if (abs(new_orientation_degrees - this->last_measured_orientation_degrees) <= this->max_allowed_orientation_degrees_change) {
+        this->last_measured_orientation_degrees = new_orientation_degrees;
+    }
 }
 
-bool update_towards_target_location(bool update_left = true, bool update_back = true, bool update_orientation = true) {
+bool Drivetrain::update_towards_target_location(
+    bool update_left = true,
+    bool update_back = true,
+    bool update_orientation = true,
+    float back_centimeters_tolerance = -1.0,
+    float left_centimeters_tolerance = -1.0,
+    float orientation_degrees_tolerance = -1.0
+) {
     this->update_measurements();
-    float left_distance_to_target = this->get_left_distance_to_target();
-    float back_distance_to_target = this->get_back_distance_to_target();
+    float left_distance_to_target = this->get_left_distance_to_target_location();
+    float back_distance_to_target = this->get_back_distance_to_target_location();
     float degrees_to_target_orientation = this->get_degrees_to_target_orientation();
     if (!update_left|| left_distance_to_target < this->stop_left_centimeters) {
         left_distance_to_target = 0;
@@ -94,28 +108,41 @@ bool update_towards_target_location(bool update_left = true, bool update_back = 
     float drive = back_distance_to_target / max_distance;
     float strafe = left_distance_to_target / max_distance;
     float twist = degrees_to_target_orientation;
+    if (left_distance_to_target < this->begin_linear_slowdown_left_centimeters) {
+        drive = drive * (left_distance_to_target - this->stop_left_centimeters)
+                        / (this->begin_linear_slowdown_left_centimeters - this->stop_left_centimeters);
+    }
     if (back_distance_to_target < this->begin_linear_slowdown_back_centimeters) {
-        drive = drive * (back_distance_to_target - this->begin_linear_slowdown_back_centimeters)
+        drive = drive * (back_distance_to_target - this->stop_back_centimeters)
                         / (this->begin_linear_slowdown_back_centimeters - this->stop_back_centimeters);
     }
-    if (left_distance_to_target < this->begin_linear_slowdown_left_centimeters) {
-        drive = drive * (left_distance_to_target - this->begin_linear_slowdown_left_centimeters)
-                        / (this->begin_linear_slowdown_left_centimeters - this->stop_left_centimeters);
-    }
     if (degrees_to_target_orientation < this->begin_linear_slowdown_degrees) {
-        drive = drive * (left_distance_to_target - this->begin_linear_slowdown_left_centimeters)
-                        / (this->begin_linear_slowdown_left_centimeters - this->stop_left_centimeters);
+        drive = drive * (degrees_to_target_orientation - this->stop_degrees)
+                        / (this->begin_linear_slowdown_degrees - this->stop_degrees);
     }
     this->set_movement(drive, strafe, twist);
-    return drive == 0 && twist == 0 &&  strafe == 0;
+    if (left_centimeters_tolerance < 0) {
+        left_centimeters_tolerance = this->stop_left_centimeters;
+    }
+    if (back_centimeters_tolerance < 0) {
+        back_centimeters_tolerance = this->stop_back_centimeters;
+    }
+    if (orientation_degrees_tolerance < 0) {
+        orientation_degrees_tolerance = this->stop_degrees;
+    }
+    return (
+        (left_distance_to_target < left_centimeters_tolerance) & 
+        (back_distance_to_target < back_centimeters_tolerance) &
+        (degrees_to_target_orientation < orientation_degrees_tolerance)
+    );
 }
 
-float get_last_measured_left_centimeters() {
+float Drivetrain::get_last_measured_left_centimeters() {
     return this->last_measured_left_centimeters;
 }
-float get_last_measured_back_centimeters() {
+float Drivetrain::get_last_measured_back_centimeters() {
     return this->last_measured_back_centimeters;
 }
-float get_last_measured_orientation_degrees(){
+float Drivetrain::get_last_measured_orientation_degrees(){
     return this->last_measured_orientation_degrees;
 }

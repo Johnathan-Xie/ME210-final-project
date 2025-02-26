@@ -1,23 +1,75 @@
 #include <Arduino.h>
-#include "Magnetometer.h"
+#include "Drivetrain.h"
+
 const int MAGNETOMETER_DECLINATION_DEGS = 12;
 const int MAGNETOMETER_DECLINATION_MINS = 52;
-const char MAGNETOMETER_DECINATION_DIR = 'E'
+const char MAGNETOMETER_DECINATION_DIR = 'E';
 
+const int FRONT_LEFT_MOTOR_DIRECTION_PIN_0 = -1;
+const int FRONT_LEFT_MOTOR_DIRECTION_PIN_1 = -1;
+const int FRONT_LEFT_MOTOR_PWM_PIN = -1;
 
-Magnetometer magnetometer(PIN_0, PIN_1);
+const int FRONT_RIGHT_MOTOR_DIRECTION_PIN_0 = -1;
+const int FRONT_RIGHT_MOTOR_DIRECTION_PIN_1 = -1;
+const int FRONT_RIGHT_MOTOR_PWM_PIN = -1;
+
+const int BACK_LEFT_MOTOR_DIRECTION_PIN_0 = -1;
+const int BACK_LEFT_MOTOR_DIRECTION_PIN_1 = -1;
+const int BACK_LEFT_MOTOR_PWM_PIN = -1;
+
+const int BACK_RIGHT_MOTOR_DIRECTION_PIN_0 = -1;
+const int BACK_RIGHT_MOTOR_DIRECTION_PIN_1 = -1;
+const int BACK_RIGHT_MOTOR_PWM_PIN = -1;
+
+const int LEFT_ULTRASONIC_TRIG_PIN = -1;
+const int LEFT_ULTRASONIC_ECHO_PIN = -1;
+
+const int BACK_ULTRASONIC_TRIG_PIN = -1;
+const int BACK_ULTRASONIC_ECHO_PIN = -1;
+
+const float REFERENCE_ZERO_ORIENTATION = -1;
+float MAX_ALLOWED_BACK_CENTIMETERS_CHANGE = 2.0;
+float MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE = 2.0;
+float MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE = 5.0;
+
+const float BEGIN_LINEAR_SLOWDOWN_BACK_CENTIMETERS = 5.0;
+const float STOP_BACK_CENTIMETERS = 1.0;
+
+const float BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS = 5.0;
+const float STOP_LEFT_CENTIMETERS = 1.0;
+
+const float BEGIN_LINEAR_SLOWDOWN_DEGREES = 10.0;
+const float STOP_DEGREES = 2.0;
+
+Motor front_left_motor(FRONT_LEFT_MOTOR_DIRECTION_PIN_0, FRONT_LEFT_MOTOR_DIRECTION_PIN_1, FRONT_LEFT_MOTOR_PWM_PIN);
+Motor front_right_motor(FRONT_RIGHT_MOTOR_DIRECTION_PIN_0, FRONT_RIGHT_MOTOR_DIRECTION_PIN_1, FRONT_RIGHT_MOTOR_PWM_PIN);
+Motor back_left_motor(BACK_LEFT_MOTOR_DIRECTION_PIN_0, BACK_LEFT_MOTOR_DIRECTION_PIN_1, BACK_LEFT_MOTOR_PWM_PIN);
+Motor back_right_motor(BACK_RIGHT_MOTOR_DIRECTION_PIN_0, BACK_RIGHT_MOTOR_DIRECTION_PIN_1, BACK_RIGHT_MOTOR_PWM_PIN);
+
+Magnetometer magnetometer(MAGNETOMETER_DECLINATION_DEGS, MAGNETOMETER_DECLINATION_MINS, MAGNETOMETER_DECINATION_DIR);
+Ultrasonic left_ultrasonic(LEFT_ULTRASONIC_TRIG_PIN, LEFT_ULTRASONIC_ECHO_PIN);
+Ultrasonic back_ultrasonic(BACK_ULTRASONIC_TRIG_PIN, BACK_ULTRASONIC_ECHO_PIN);
+Drivetrain drivetrain(
+  front_left_motor, front_right_motor, back_left_motor, back_right_motor,
+  magnetometer, left_ultrasonic, back_ultrasonic,
+  REFERENCE_ZERO_ORIENTATION,
+  MAX_ALLOWED_BACK_CENTIMETERS_CHANGE, MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE, MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE,
+  BEGIN_LINEAR_SLOWDOWN_BACK_CENTIMETERS, STOP_BACK_CENTIMETERS,
+  BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS, STOP_LEFT_CENTIMETERS,
+  BEGIN_LINEAR_SLOWDOWN_DEGREES, STOP_DEGREES
+);
 
 void setup() {
-  Serial.begin(9600);
-  magnetometer.SetDeclination(
-    MAGNETOMETER_DECLINATION_DEGS,
-    MAGNETOMETER_DECLINATION_MINS,
-    MAGNETOMETER_DECINATION_DIR
-  );
+
 }
 
 void loop() {
-  float heading = Compass.GetHeadingDegrees();
-  Serial.println(heading);
-  delay(200);
+  drivetrain.set_movement(1.0, 0, 0, false);
+  delay(1000);
+  drivetrain.set_movement(0, 1.0, 0, false);
+  delay(1000);
+  drivetrain.set_movement(-1.0, 0, 0, false);
+  delay(1000);
+  drivetrain.set_movement(0, -1.0, 0, false);
+  delay(1000);
 }

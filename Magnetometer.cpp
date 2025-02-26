@@ -47,6 +47,12 @@ Magnetometer::Magnetometer()
                                       //     so this is a bit moot.                                      
 }
 
+Magnetometer::Magnetometer(int declination_degs, int declination_mins, char declination_dir)
+: Magnetometer()
+{      
+  this->SetDeclination(declination_degs, declination_mins, declination_dir);
+}
+
 /** Set declination in degrees, minutes and direction (E/W)
  *   See http://www.magnetic-declination.com/
  */

@@ -6,7 +6,7 @@ const int MAGNETOMETER_DECLINATION_MINS = 52;
 const char MAGNETOMETER_DECINATION_DIR = 'E'
 
 
-Magnetometer magnetometer(PIN_0, PIN_1);
+Magnetometer magnetometer(MAGNETOMETER_DECLINATION_DEGS, MAGNETOMETER_DECLINATION_MINS, MAGNETOMETER_DECINATION_DIR);
 
 void setup() {
   Serial.begin(9600);

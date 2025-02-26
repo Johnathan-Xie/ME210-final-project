@@ -107,7 +107,8 @@ class Magnetometer
 	public:
         
     // Constructor
-	  Magnetometer();
+    Magnetometer();
+    Magnetometer(int declination_degs, int declination_mins, char declination_dir);
   
     // Configuration Methods
     void SetScale( uint16_t sampling_mode );

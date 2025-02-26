@@ -3,14 +3,14 @@
 #define PWM_MAX_VALUE 255
 #define PWM_MIN_VALUE 52
 
-Motor::Motor(uint8_t direction_pin0, uint8_t direction_pin1, uint8_t pwm_pin, bool reversed = false){
-  this->direction_pin0 = direction_pin0;
-  this->direction_pin1 = direction_pin1;
+Motor::Motor(uint8_t direction_pin_0, uint8_t direction_pin_1, uint8_t pwm_pin, bool reversed = false){
+  this->direction_pin_0 = direction_pin_0;
+  this->direction_pin_1 = direction_pin_1;
   this->pwm_pin = pwm_pin;
   this->reversed = reversed;
 
-  pinMode(direction_pin0, OUTPUT);
-  pinMode(direction_pin1, OUTPUT);
+  pinMode(direction_pin_0, OUTPUT);
+  pinMode(direction_pin_1, OUTPUT);
   pinMode(pwm_pin, OUTPUT);
 }
 // Speed must range between -1 (full backward) and 1 (full forward)
@@ -29,17 +29,17 @@ void Motor::set_speed(float speed) {
   }
   
   if (pwm_value == PWM_MIN_VALUE) {
-    digitalWrite(this->direction_pin0, HIGH);
-    digitalWrite(this->direction_pin1, HIGH);
+    digitalWrite(this->direction_pin_0, HIGH);
+    digitalWrite(this->direction_pin_1, HIGH);
     analogWrite(this->pwm_pin, 0);
   } else {
     analogWrite(this->pwm_pin, pwm_value);
     if (forward) {
-      digitalWrite(this->direction_pin0, LOW);
-      digitalWrite(this->direction_pin1, HIGH);
+      digitalWrite(this->direction_pin_0, LOW);
+      digitalWrite(this->direction_pin_1, HIGH);
     } else {
-      digitalWrite(this->direction_pin0, HIGH);
-      digitalWrite(this->direction_pin1, LOW);
+      digitalWrite(this->direction_pin_0, HIGH);
+      digitalWrite(this->direction_pin_1, LOW);
     }
   }
   Serial.println(pwm_value);
