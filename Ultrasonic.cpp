@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "Ultrasonic.h"
 
-Ultrasonic::Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut, bool reversed=false, int offset=0) {
+Ultrasonic::Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut, bool reversed=false, float offset=0) {
   trig = trigPin;
   echo = echoPin;
   threePins = trig == echo ? true : false;
@@ -43,7 +43,7 @@ unsigned int Ultrasonic::read(uint8_t und) {
   if (reversed) {
     distance = -distance;
   }
-  return distance + offset;  //distance by divisor
+  return distance + offset;
 }
 
 /*

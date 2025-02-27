@@ -11,6 +11,12 @@
         "unordered_map": "cpp",
         "vector": "cpp",
         "iterator": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "chrono": "cpp",
+        "complex": "cpp",
+        "cmath": "cpp",
+        "limits": "cpp",
+        "random": "cpp",
+        "algorithm": "cpp"
     }
 }

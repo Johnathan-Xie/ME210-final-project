@@ -42,5 +42,4 @@ void Motor::set_speed(float speed) {
       digitalWrite(this->direction_pin_1, LOW);
     }
   }
-  Serial.println(pwm_value);
 }

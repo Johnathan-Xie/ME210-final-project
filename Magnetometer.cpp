@@ -4,7 +4,7 @@
 
 Magnetometer::Magnetometer(int declination_degs, int declination_mins)
 {
-  this->declination_angle = (declination_degs + (declination_mins / 60.0)) / (180 / PI);
+  this->declination_angle = (declination_degs + (declination_mins / 60.0)) / (180.0 / PI);
 }
 
 void Magnetometer::initialize() {
@@ -34,11 +34,6 @@ float Magnetometer::GetHeadingDegrees()
   Vector norm = compass.readNormalize();
   // Calculate heading
   float heading = atan2(norm.YAxis, norm.XAxis);
-  // Set declination angle on your location and fix heading
-  // You can find your declination on: http://magnetic-declination.com/
-  // (+) Positive or (-) for negative
-  // For Bytom / Poland declination angle is 4'26E (positive)
-  // Formula: (deg + (min / 60.0)) / (180 / M_PI);
   heading += declination_angle;
   // Correct for heading < 0deg and heading > 360deg
   if (heading < 0){
@@ -48,6 +43,6 @@ float Magnetometer::GetHeadingDegrees()
     heading -= 2 * PI;
   }
   // Convert to degrees
-  float headingDegrees = heading * 180/M_PI; 
+  float headingDegrees = heading * 180.0/PI; 
   return headingDegrees;
 }

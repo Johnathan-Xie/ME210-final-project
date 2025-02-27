@@ -110,7 +110,7 @@ Vector DFRobot_QMC5883::readRaw(void)
       firstRun = false;
     }
   }else if(isQMC_){
-    while (range--){
+    for (int i=0; i<range; i++) {
       v.XAxis = readRegister16(QMC5883_REG_OUT_X_M);
       v.YAxis = readRegister16(QMC5883_REG_OUT_Y_M);
       v.ZAxis = readRegister16(QMC5883_REG_OUT_Z_M);
