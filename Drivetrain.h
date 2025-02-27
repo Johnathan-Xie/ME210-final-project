@@ -3,6 +3,7 @@
 #include "Motor.h"
 #include "Ultrasonic.h"
 #include "Magnetometer.h"
+#include "DFRobot_QMC5883.h"
 
 // Potentially add provision for integrating for location
 class Drivetrain {
@@ -24,7 +25,7 @@ class Drivetrain {
       begin_linear_slowdown_degrees(begin_linear_slowdown_degrees), stop_degrees(stop_degrees)
       {}
 
-    
+    void initialize();
     void set_target_location(float left_centimeters, float back_centimeters, float orientation_degrees);
     void set_movement(float drive, float strafe, float twist, bool heading_correction = true);
     void update_measurements();

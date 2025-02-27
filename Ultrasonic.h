@@ -28,7 +28,7 @@
 class Ultrasonic {
   public:
     Ultrasonic(uint8_t sigPin) : Ultrasonic(sigPin, sigPin) {};
-    Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut = 20000UL);
+    Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut = 20000UL, bool reversed=false, int offset=0);
     unsigned int read(uint8_t und = CM);
     unsigned int distanceRead(uint8_t und = CM) __attribute__ ((deprecated ("This method is deprecated, use read() instead.")));
     void setTimeout(unsigned long timeOut) {timeout = timeOut;}
@@ -36,7 +36,9 @@ class Ultrasonic {
   private:
     uint8_t trig;
     uint8_t echo;
-    boolean threePins = false;
+    bool reversed = false;
+    int offset = 0;
+    bool threePins = false;
     unsigned long previousMicros;
     unsigned long timeout;
     unsigned int timing();

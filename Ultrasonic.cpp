@@ -1,10 +1,12 @@
 #include <Arduino.h>
 #include "Ultrasonic.h"
 
-Ultrasonic::Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut) {
+Ultrasonic::Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut, bool reversed=false, int offset=0) {
   trig = trigPin;
   echo = echoPin;
   threePins = trig == echo ? true : false;
+  reversed = reversed;
+  offset = offset;
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
   timeout = timeOut;
@@ -37,7 +39,11 @@ unsigned int Ultrasonic::timing() {
  * To change the default, replace CM by INC.
  */
 unsigned int Ultrasonic::read(uint8_t und) {
-  return timing() / und / 2;  //distance by divisor
+  float distance = timing() / und / 2.0;
+  if (reversed) {
+    distance = -distance;
+  }
+  return distance + offset;  //distance by divisor
 }
 
 /*

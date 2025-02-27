@@ -1,0 +1,99 @@
+/*
+#include <Arduino.h>
+#include "Drivetrain.h"
+#include "ArduinoLog.h"
+
+const int MAGNETOMETER_DECLINATION_DEGS = 12;
+const int MAGNETOMETER_DECLINATION_MINS = 52;
+const char MAGNETOMETER_DECLINATION_DIR = 'E';
+
+const int FRONT_LEFT_MOTOR_DIRECTION_PIN_0 = 6;
+const int FRONT_LEFT_MOTOR_DIRECTION_PIN_1 = 7;
+const int FRONT_LEFT_MOTOR_PWM_PIN = 11;
+
+const int FRONT_RIGHT_MOTOR_DIRECTION_PIN_0 = 8;
+const int FRONT_RIGHT_MOTOR_DIRECTION_PIN_1 = 12;
+const int FRONT_RIGHT_MOTOR_PWM_PIN = 3;
+
+const int BACK_LEFT_MOTOR_DIRECTION_PIN_0 = 4;
+const int BACK_LEFT_MOTOR_DIRECTION_PIN_1 = 5;
+const int BACK_LEFT_MOTOR_PWM_PIN = 10;
+
+const int BACK_RIGHT_MOTOR_DIRECTION_PIN_0 = 2;
+const int BACK_RIGHT_MOTOR_DIRECTION_PIN_1 = 13;
+const int BACK_RIGHT_MOTOR_PWM_PIN = 9;
+
+const int LEFT_ULTRASONIC_TRIG_PIN = A2;
+const int LEFT_ULTRASONIC_ECHO_PIN = A3;
+
+const int BACK_ULTRASONIC_TRIG_PIN = A0;
+const int BACK_ULTRASONIC_ECHO_PIN = A1;
+
+
+const int LEFT_ULTRASONIC_TRIG_PIN = 0;
+const int LEFT_ULTRASONIC_ECHO_PIN = 0;
+
+const int BACK_ULTRASONIC_TRIG_PIN = 0;
+const int BACK_ULTRASONIC_ECHO_PIN = 0;
+
+const float REFERENCE_ZERO_ORIENTATION = -1;
+const float MAX_ALLOWED_BACK_CENTIMETERS_CHANGE = 2.0;
+const float MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE = 2.0;
+const float MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE = 5.0;
+
+const float BEGIN_LINEAR_SLOWDOWN_BACK_CENTIMETERS = 5.0;
+const float STOP_BACK_CENTIMETERS = 1.0;
+
+const float BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS = 5.0;
+const float STOP_LEFT_CENTIMETERS = 1.0;
+
+const float BEGIN_LINEAR_SLOWDOWN_DEGREES = 10.0;
+const float STOP_DEGREES = 2.0;
+const int STOP_DELAY = 500;
+const int RUN_DELAY = 1500;
+const float SQUARE_SPEED = 0.4;
+Motor front_left_motor(FRONT_LEFT_MOTOR_DIRECTION_PIN_0, FRONT_LEFT_MOTOR_DIRECTION_PIN_1, FRONT_LEFT_MOTOR_PWM_PIN, true);
+Motor front_right_motor(FRONT_RIGHT_MOTOR_DIRECTION_PIN_0, FRONT_RIGHT_MOTOR_DIRECTION_PIN_1, FRONT_RIGHT_MOTOR_PWM_PIN, true);
+Motor back_left_motor(BACK_LEFT_MOTOR_DIRECTION_PIN_0, BACK_LEFT_MOTOR_DIRECTION_PIN_1, BACK_LEFT_MOTOR_PWM_PIN, true);
+Motor back_right_motor(BACK_RIGHT_MOTOR_DIRECTION_PIN_0, BACK_RIGHT_MOTOR_DIRECTION_PIN_1, BACK_RIGHT_MOTOR_PWM_PIN, true);
+
+Magnetometer magnetometer(MAGNETOMETER_DECLINATION_DEGS, MAGNETOMETER_DECLINATION_MINS, MAGNETOMETER_DECLINATION_DIR);
+Ultrasonic left_ultrasonic(LEFT_ULTRASONIC_TRIG_PIN, LEFT_ULTRASONIC_ECHO_PIN);
+const float BACK_ULTRASONIC_OFFSET_CENTIMETERS = 1.0;
+bool BACK_ULTRASONIC_REVERSED = true;
+Ultrasonic back_ultrasonic(BACK_ULTRASONIC_TRIG_PIN, BACK_ULTRASONIC_ECHO_PIN, BACK_ULTRASONIC_REVERSED, BACK_ULTRASONIC_OFFSET_CENTIMETERS);
+
+Drivetrain drivetrain(
+  front_left_motor, front_right_motor, back_left_motor, back_right_motor,
+  magnetometer, left_ultrasonic, back_ultrasonic,
+  REFERENCE_ZERO_ORIENTATION,
+  MAX_ALLOWED_BACK_CENTIMETERS_CHANGE, MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE, MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE,
+  BEGIN_LINEAR_SLOWDOWN_BACK_CENTIMETERS, STOP_BACK_CENTIMETERS,
+  BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS, STOP_LEFT_CENTIMETERS,
+  BEGIN_LINEAR_SLOWDOWN_DEGREES, STOP_DEGREES
+);
+
+void setup() {
+  Serial.begin(9600);
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+}
+
+void loop() {
+  drivetrain.set_movement(SQUARE_SPEED, 0, 0, false);
+  delay(RUN_DELAY);
+  drivetrain.set_movement(0, 0, 0, false);
+  delay(STOP_DELAY);
+  drivetrain.set_movement(0, SQUARE_SPEED, 0, false);
+  delay(RUN_DELAY);
+  drivetrain.set_movement(0, 0, 0, false);
+  delay(STOP_DELAY);
+  drivetrain.set_movement(-SQUARE_SPEED, 0, 0, false);
+  delay(RUN_DELAY);
+  drivetrain.set_movement(0, 0, 0, false);
+  delay(STOP_DELAY);
+  drivetrain.set_movement(0, -SQUARE_SPEED, 0, false);
+  delay(RUN_DELAY);
+  drivetrain.set_movement(0, 0, 0, false);
+  delay(STOP_DELAY);
+}
+*/

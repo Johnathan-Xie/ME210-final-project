@@ -3,6 +3,9 @@
 #include "Drivetrain.h"
 #include "ArduinoLog.h"
 
+void Drivetrain::initialize() {
+    this->magnetometer.initialize();
+}
 void Drivetrain::set_target_location(float left_centimeters, float back_centimeters, float orientation_degrees) {
     this->target_left_centimeters = left_centimeters;
     this->target_back_centimeters = back_centimeters;
@@ -16,9 +19,9 @@ void Drivetrain::set_movement(float drive, float strafe, float twist, bool headi
         drive = orig_drive * cos(heading) - orig_strafe * sin(heading);
         strafe = orig_drive * sin(heading) + orig_strafe * cos(heading);
     }
-    Log.info("drive: %.3f", drive);
-    Log.info("strafe: %.3f", strafe);
-    Log.info("twist: %.3f", twist);
+    Log.infoln("drive: %F", drive);
+    Log.infoln("strafe: %F", strafe);
+    Log.infoln("twist: %F", twist);
 
     float speeds[] = {
             (drive + strafe + twist),
@@ -27,12 +30,6 @@ void Drivetrain::set_movement(float drive, float strafe, float twist, bool headi
             (drive + strafe - twist)
     };
     const int num_motors = sizeof(speeds) / sizeof(speeds[0]);
-
-    //apply signs in case values need reversal
-    int signs[] = {1, -1, 1, -1};
-    for(int i = 0; i < num_motors; i++) {
-        speeds[i] = speeds[i] * signs[i];
-    }
 
     // Because we are adding and motors only take values between
     // [-1,1] we may need to normalize them.
@@ -44,15 +41,16 @@ void Drivetrain::set_movement(float drive, float strafe, float twist, bool headi
 
     // If and only if the maximum is outside of the range we want it to be,
     // normalize all the other speeds based on the given speed value.
-    if (max_speed > 1)
-        for (int i = 0; i < num_motors; i++) {
+    if (max_speed > 1) {
+      for (int i = 0; i < num_motors; i++) {
             speeds[i] /= max_speed;
         }
-            
-    Log.info("front_left speed: %.3f", speeds[0]);
-    Log.info("front_right speed: %.3f", speeds[1]);
-    Log.info("back_left speed: %.3f", speeds[2]);
-    Log.info("back_right speed: %.3f", speeds[3]);
+    }
+    
+    Log.infoln("front_left speed: %F", speeds[0]);
+    Log.infoln("front_right speed: %F", speeds[1]);
+    Log.infoln("back_left speed: %F", speeds[2]);
+    Log.infoln("back_right speed: %F", speeds[3]);
     this->front_left_motor.set_speed(speeds[0]);
     this->front_right_motor.set_speed(speeds[1]);
     this->back_left_motor.set_speed(speeds[2]);
@@ -60,15 +58,15 @@ void Drivetrain::set_movement(float drive, float strafe, float twist, bool headi
 }
 
 float Drivetrain::get_left_distance_to_target_location() {
-    return abs(this->target_left_centimeters - this->last_measured_left_centimeters);
+    return this->target_left_centimeters - this->last_measured_left_centimeters;
 }
 
 float Drivetrain::get_back_distance_to_target_location() {
-    return abs(this->target_back_centimeters - this->last_measured_back_centimeters);
+    return this->target_back_centimeters - this->last_measured_back_centimeters;
 }
 
 float Drivetrain::get_degrees_to_target_orientation() {
-    return abs(this->target_orientation_degrees - this->last_measured_orientation_degrees);
+    return this->target_orientation_degrees - this->last_measured_orientation_degrees;
 }
 /*
 float Drivetrain::get_distance_to_target_location() {
@@ -92,9 +90,9 @@ void Drivetrain::update_measurements() {
     if (abs(new_orientation_degrees - this->last_measured_orientation_degrees) <= this->max_allowed_orientation_degrees_change) {
         this->last_measured_orientation_degrees = new_orientation_degrees;
     }
-    Log.info("updated left centimeters %.3f", this->last_measured_left_centimeters);
-    Log.info("updated back centimeters %.3f", this->last_measured_back_centimeters);
-    Log.info("updated orientation degrees %.3f", this->last_measured_orientation_degrees);
+    Log.infoln("updated left centimeters %F", this->last_measured_left_centimeters);
+    Log.infoln("updated back centimeters %F", this->last_measured_back_centimeters);
+    Log.infoln("updated orientation degrees %F", this->last_measured_orientation_degrees);
 }
 
 bool Drivetrain::update_towards_target_location(
@@ -122,15 +120,15 @@ bool Drivetrain::update_towards_target_location(
     float drive = back_distance_to_target / max_distance;
     float strafe = left_distance_to_target / max_distance;
     float twist = degrees_to_target_orientation;
-    if (left_distance_to_target < this->begin_linear_slowdown_left_centimeters) {
+    if (abs(left_distance_to_target) < this->begin_linear_slowdown_left_centimeters) {
         drive = drive * (left_distance_to_target - this->stop_left_centimeters)
                         / (this->begin_linear_slowdown_left_centimeters - this->stop_left_centimeters);
     }
-    if (back_distance_to_target < this->begin_linear_slowdown_back_centimeters) {
+    if (abs(back_distance_to_target) < this->begin_linear_slowdown_back_centimeters) {
         drive = drive * (back_distance_to_target - this->stop_back_centimeters)
                         / (this->begin_linear_slowdown_back_centimeters - this->stop_back_centimeters);
     }
-    if (degrees_to_target_orientation < this->begin_linear_slowdown_degrees) {
+    if (abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees) {
         drive = drive * (degrees_to_target_orientation - this->stop_degrees)
                         / (this->begin_linear_slowdown_degrees - this->stop_degrees);
     }
@@ -150,7 +148,7 @@ bool Drivetrain::update_towards_target_location(
         (back_distance_to_target < back_centimeters_tolerance) &&
         (degrees_to_target_orientation < orientation_degrees_tolerance)
     );
-    Log.info("All within tolerance: %d", all_within_tolerance);
+    Log.infoln("All within tolerance: %d", all_within_tolerance);
     return all_within_tolerance;
 }
 
