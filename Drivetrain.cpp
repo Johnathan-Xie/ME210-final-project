@@ -37,10 +37,12 @@ void Drivetrain::set_movement(double drive, double strafe, double twist, bool he
         drive = orig_drive * cos(heading) - orig_strafe * sin(heading);
         strafe = orig_drive * sin(heading) + orig_strafe * cos(heading);
     }
-    
+    /*
     Log.infoln("drive: %F", drive);
     Log.infoln("strafe: %F", strafe);
-    Log.infoln("twist: %F", twist);
+    Log.infoln("twist: %F", twist);   
+    */
+    
 
     double speeds[] = {
             (drive + strafe + twist),
@@ -118,6 +120,7 @@ void Drivetrain::update_measurements() {
     }
     Log.infoln("updated left centimeters %F", this->last_measured_left_centimeters);
     Log.infoln("updated back centimeters %F", this->last_measured_back_centimeters);
+    Log.infoln("updated last_measured_orientation_degrees %F", this->last_measured_orientation_degrees);
 }
 
 bool Drivetrain::update_towards_target_location(
@@ -132,7 +135,6 @@ bool Drivetrain::update_towards_target_location(
     double left_distance_to_target = this->get_left_distance_to_target_location();
     double back_distance_to_target = this->get_back_distance_to_target_location();
     double degrees_to_target_orientation = this->get_degrees_to_target_orientation();
-    
     if (!update_left|| abs(left_distance_to_target) < this->stop_left_centimeters) {
         left_distance_to_target = 0;
     }
@@ -143,19 +145,19 @@ bool Drivetrain::update_towards_target_location(
         degrees_to_target_orientation = 0;
     }
     double max_distance = max(abs(back_distance_to_target), abs(left_distance_to_target));
-    double drive = -back_distance_to_target;
-    double strafe = -left_distance_to_target;
+    double drive = back_distance_to_target;
+    double strafe = left_distance_to_target; 
     if (max_distance > 0) {
-        double drive = drive / max_distance;
-        double strafe = strafe / max_distance;
+        drive = drive / max_distance;
+        strafe = strafe / max_distance;
     }
+    
     double twist = degrees_to_target_orientation / twist_divisor;
     if (twist < 0) {
         twist = max(twist, -this->max_twist);
     } else if (twist < 0.01) {
         twist = 0;
-    }
-    else {
+    } else {
         twist = min(twist, this->max_twist);
     }
     if (abs(left_distance_to_target) < this->begin_linear_slowdown_left_centimeters) {
@@ -170,7 +172,9 @@ bool Drivetrain::update_towards_target_location(
         twist = twist * abs((abs(degrees_to_target_orientation) - this->stop_degrees)
                         / (this->begin_linear_slowdown_degrees - this->stop_degrees));
     }
-    
+    Log.infoln("drive: %F", drive);
+    Log.infoln("strafe: %F", strafe);
+    Log.infoln("twist: %F", twist);
     this->set_movement(drive, strafe, twist);
     if (left_centimeters_tolerance < 0) {
         left_centimeters_tolerance = this->stop_left_centimeters;
