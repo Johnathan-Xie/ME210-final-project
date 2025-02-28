@@ -27,7 +27,6 @@ void Drivetrain::set_target_location(double left_centimeters, double back_centim
     this->target_left_centimeters = left_centimeters;
     this->target_back_centimeters = back_centimeters;
     this->target_orientation_degrees = orientation_degrees;
-    Log.errorln("target_orientation_degrees: %F", target_orientation_degrees);
 }
 void Drivetrain::set_movement(double drive, double strafe, double twist, bool heading_correction = true) {
     this->update_measurements();
@@ -86,9 +85,6 @@ double Drivetrain::get_back_distance_to_target_location() {
 }
 
 double Drivetrain::get_degrees_to_target_orientation() {
-    Log.errorln("this->target_orientation_degrees %F", this->target_orientation_degrees);
-    Log.errorln("this->last_measured_orientation_degrees %F", this->last_measured_orientation_degrees);
-    Log.errorln("degrees_atan2(this->target_orientation_degrees, this->last_measured_orientation_degrees) %F", degrees_atan2(this->target_orientation_degrees, this->last_measured_orientation_degrees));
     return degrees_atan2(this->target_orientation_degrees, this->last_measured_orientation_degrees);
 }
 /*
@@ -109,9 +105,6 @@ void Drivetrain::update_measurements() {
     double new_left_centimeters = (double)this->left_ultrasonic.read();
     double new_back_centimeters = (double)this->back_ultrasonic.read();
     double new_orientation_degrees = degrees_atan2((double)magnetometer.GetHeadingDegrees(), this->reference_zero_orientation);
-    Log.errorln("magnetometer.GetHeadingDegrees(): %F", magnetometer.GetHeadingDegrees());
-    Log.errorln("this->reference_zero_orientation: %F", this->reference_zero_orientation);
-    Log.errorln("new_orientation_degrees: %F", new_orientation_degrees);
     
     this->last_measured_left_centimeters = new_left_centimeters;
     if ((abs(new_left_centimeters - this->last_measured_left_centimeters) <= this->max_allowed_left_centimeters_change) || this->last_measured_back_centimeters < -999) {
@@ -140,7 +133,6 @@ bool Drivetrain::update_towards_target_location(
     double back_distance_to_target = this->get_back_distance_to_target_location();
     double degrees_to_target_orientation = this->get_degrees_to_target_orientation();
     
-    Log.errorln("degrees_to_target_orientation: %F", degrees_to_target_orientation);
     if (!update_left|| abs(left_distance_to_target) < this->stop_left_centimeters) {
         left_distance_to_target = 0;
     }
@@ -151,9 +143,9 @@ bool Drivetrain::update_towards_target_location(
         degrees_to_target_orientation = 0;
     }
     double max_distance = max(abs(back_distance_to_target), abs(left_distance_to_target));
-    double drive = back_distance_to_target;
-    double strafe = left_distance_to_target;
-    if (max_distance > 0){
+    double drive = -back_distance_to_target;
+    double strafe = -left_distance_to_target;
+    if (max_distance > 0) {
         double drive = drive / max_distance;
         double strafe = strafe / max_distance;
     }
@@ -179,7 +171,6 @@ bool Drivetrain::update_towards_target_location(
                         / (this->begin_linear_slowdown_degrees - this->stop_degrees));
     }
     
-    Log.errorln("twist: %F", twist);
     this->set_movement(drive, strafe, twist);
     if (left_centimeters_tolerance < 0) {
         left_centimeters_tolerance = this->stop_left_centimeters;

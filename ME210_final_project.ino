@@ -60,7 +60,7 @@ Motor back_left_motor(BACK_LEFT_MOTOR_DIRECTION_PIN_0, BACK_LEFT_MOTOR_DIRECTION
 Motor back_right_motor(BACK_RIGHT_MOTOR_DIRECTION_PIN_0, BACK_RIGHT_MOTOR_DIRECTION_PIN_1, BACK_RIGHT_MOTOR_PWM_PIN, true);
 
 Ultrasonic left_ultrasonic(LEFT_ULTRASONIC_TRIG_PIN, LEFT_ULTRASONIC_ECHO_PIN);
-const double BACK_ULTRASONIC_OFFSET_CENTIMETERS = 1.0;
+const double BACK_ULTRASONIC_OFFSET_CENTIMETERS = 100;
 bool BACK_ULTRASONIC_REVERSED = true;
 Ultrasonic back_ultrasonic(BACK_ULTRASONIC_TRIG_PIN, BACK_ULTRASONIC_ECHO_PIN, 20000, BACK_ULTRASONIC_REVERSED, BACK_ULTRASONIC_OFFSET_CENTIMETERS);
 
@@ -77,7 +77,7 @@ Drivetrain drivetrain(
 void setup() {
   Serial.begin(9600);
   Serial.println("here");
-  Log.begin(LOG_LEVEL_SILENT, &Serial);
+  Log.begin(LOG_LEVEL_INFO, &Serial);
 
   drivetrain.initialize(
     MAGNETOMETER_MIN_X,
@@ -89,12 +89,12 @@ void setup() {
   );
   
   drivetrain.magnetometer.compass.enableCalibration(false);
-  drivetrain.set_target_location(0, 0, TARGET_ORIENTATION_DEGREES);
+  drivetrain.set_target_location(12, 45, TARGET_ORIENTATION_DEGREES);
 }
 
 void loop() {
   //drivetrain.update_measurements();
   //delay(1000);
-  drivetrain.update_towards_target_location(false, false);
+  drivetrain.update_towards_target_location();
   //delay(1000);
 }

@@ -5,8 +5,8 @@ Ultrasonic::Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut, 
   trig = trigPin;
   echo = echoPin;
   threePins = trig == echo ? true : false;
-  reversed = reversed;
-  offset = offset;
+  this->reversed = reversed;
+  this->offset = offset;
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
   timeout = timeOut;
@@ -39,7 +39,7 @@ unsigned int Ultrasonic::timing() {
  * To change the default, replace CM by INC.
  */
 unsigned int Ultrasonic::read(uint8_t und) {
-  float distance = timing() / und / 2.0;
+  float distance = timing() / (double)und / 2.0;
   if (reversed) {
     distance = -distance;
   }
