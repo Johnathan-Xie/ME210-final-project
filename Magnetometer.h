@@ -2,15 +2,13 @@
 
 class Magnetometer
 {
-	public:
-        
-    Magnetometer(int declination_degs, int declination_mins);
+	public: 
+        Magnetometer(int declination_degs, int declination_mins);
 
-    // Get a heading in degrees
-    float GetHeadingDegrees();
-    void initialize();
-    
+        // Get a heading in degrees
+        float GetHeadingDegrees();
+        void initialize();
+        DFRobot_QMC5883 compass;
 	private:
-	  float declination_angle = 0;
-    DFRobot_QMC5883 compass;
+        float declination_angle = 0;  
 };

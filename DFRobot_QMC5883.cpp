@@ -129,8 +129,27 @@ Vector DFRobot_QMC5883::readRaw(void)
   }
   return v;
 }
+void DFRobot_QMC5883::setMinMax(float minX, float maxX, float minY, float maxY, float minZ, float maxZ) {
+  this->minX = minX;
+  this->maxX = maxX;
+  this->minY = minY;
+  this->maxY = maxY;
+  this->minY = minY;
+  this->maxY = maxY;
+}
+
+void DFRobot_QMC5883::enableCalibration(bool enable = true){
+  this->disableCalibration = !enable;
+}
+void DFRobot_QMC5883::setNumReadsPerMeasure(int numReads=10) {
+  this->numReadsPerMeasure = numReads;
+}
+
 void DFRobot_QMC5883::calibrate()
 {
+  if (disableCalibration) {
+    return;
+  }
   if(v.XAxis < minX ) minX = v.XAxis;
   if(v.XAxis > maxX ) maxX = v.XAxis;
   if(v.YAxis < minY ) minY = v.YAxis;
@@ -140,6 +159,9 @@ void DFRobot_QMC5883::calibrate()
 }
 void DFRobot_QMC5883::initMinMax()
 {
+  if (disableCalibration) {
+    return;
+  }
   minX = v.XAxis;
   maxX = v.XAxis;
   minY = v.YAxis;
@@ -149,7 +171,7 @@ void DFRobot_QMC5883::initMinMax()
 }
 Vector DFRobot_QMC5883::readNormalize(void)
 {
-  int range = 10;
+  int range = numReadsPerMeasure;
   float Xsum = 0.0;
   float Ysum = 0.0;
   float Zsum = 0.0;

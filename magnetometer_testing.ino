@@ -17,5 +17,23 @@ void setup() {
 void loop() {
   float heading = magnetometer.GetHeadingDegrees();
   Serial.println(heading);
+  Serial.print("minX: ");
+  Serial.println(magnetometer.compass.minX);
+  
+  Serial.print("maxX: ");;
+  Serial.println(magnetometer.compass.maxX);
+  
+  Serial.print("minY: ");
+  Serial.println(magnetometer.compass.minY);
+  
+  Serial.print("maxY: ");
+  Serial.println(magnetometer.compass.maxY);
+  
+  Serial.print("minZ: ");
+  Serial.println(magnetometer.compass.minZ);
+  
+  Serial.print("maxZ: ");
+  Serial.println(magnetometer.compass.maxZ);
+  
 }
 */

@@ -136,7 +136,9 @@ public:
   
   void initMinMax();
   void calibrate(void);
-  
+  void setMinMax(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
+  void enableCalibration(bool enable = true);
+  void setNumReadsPerMeasure(int numReads=10);
   void  setRange(QMC5883_range_t range);
   QMC5883_range_t getRange(void);
 
@@ -151,6 +153,10 @@ public:
   int getICType(void);
   bool isHMC(){return isHMC_;}
   bool isQMC(){return isQMC_;}
+
+  float minX, maxX;
+  float minY, maxY;
+  float minZ, maxZ;
 private:
   bool isHMC_;
   bool isQMC_;
@@ -158,11 +164,9 @@ private:
   float mgPerDigit;
   Vector v;
   
-  
-  float minX, maxX;
-  float minY, maxY;
-  float minZ, maxZ;
   bool firstRun;
+  bool disableCalibration = false;
+  int numReadsPerMeasure = 10;
   void writeRegister8(uint8_t reg, uint8_t value);
   uint8_t readRegister8(uint8_t reg);
   uint8_t fastRegister8(uint8_t reg);

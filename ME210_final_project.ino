@@ -28,30 +28,39 @@ const int LEFT_ULTRASONIC_ECHO_PIN = A3;
 const int BACK_ULTRASONIC_TRIG_PIN = A0;
 const int BACK_ULTRASONIC_ECHO_PIN = A1;
 
-const float REFERENCE_ZERO_ORIENTATION = 0;
-const float MAX_ALLOWED_BACK_CENTIMETERS_CHANGE = 100.0;
-const float MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE = 100.0;
-const float MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE = 360.0;
+const double REFERENCE_ZERO_ORIENTATION = -100.0;
+const double MAX_ALLOWED_BACK_CENTIMETERS_CHANGE = 100.0;
+const double MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE = 100.0;
+const double MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE = 360.0;
 
-const float BEGIN_LINEAR_SLOWDOWN_BACK_CENTIMETERS = 5.0;
-const float STOP_BACK_CENTIMETERS = 1.0;
+const double BEGIN_LINEAR_SLOWDOWN_BACK_CENTIMETERS = 5.0;
+const double STOP_BACK_CENTIMETERS = 1.0;
 
-const float BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS = 5.0;
-const float STOP_LEFT_CENTIMETERS = 1.0;
+const double BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS = 5.0;
+const double STOP_LEFT_CENTIMETERS = 1.0;
 
-const float BEGIN_LINEAR_SLOWDOWN_DEGREES = 50.0;
-const float STOP_DEGREES = 30.0;
+const double BEGIN_LINEAR_SLOWDOWN_DEGREES = 30.0;
+const double STOP_DEGREES = 10.0;
 const int STOP_DELAY = 500;
 const int RUN_DELAY = 1500;
-const float SQUARE_SPEED = 0.4;
-const float TURN_SPEED = 0.4;
+const double SQUARE_SPEED = 0.4;
+const double TURN_SPEED = 0.4;
+const double TARGET_ORIENTATION_DEGREES = 0.0;
+
+const double MAGNETOMETER_MIN_X = -21642.80;
+const double MAGNETOMETER_MAX_X = 2244.80;
+const double MAGNETOMETER_MIN_Y = -74188.21;
+const double MAGNETOMETER_MAX_Y = -50056.60;
+const double MAGNETOMETER_MIN_Z = -43734.56;
+const double MAGNETOMETER_MAX_Z = -37478.4;
+
 Motor front_left_motor(FRONT_LEFT_MOTOR_DIRECTION_PIN_0, FRONT_LEFT_MOTOR_DIRECTION_PIN_1, FRONT_LEFT_MOTOR_PWM_PIN, true);
 Motor front_right_motor(FRONT_RIGHT_MOTOR_DIRECTION_PIN_0, FRONT_RIGHT_MOTOR_DIRECTION_PIN_1, FRONT_RIGHT_MOTOR_PWM_PIN, true);
 Motor back_left_motor(BACK_LEFT_MOTOR_DIRECTION_PIN_0, BACK_LEFT_MOTOR_DIRECTION_PIN_1, BACK_LEFT_MOTOR_PWM_PIN, true);
 Motor back_right_motor(BACK_RIGHT_MOTOR_DIRECTION_PIN_0, BACK_RIGHT_MOTOR_DIRECTION_PIN_1, BACK_RIGHT_MOTOR_PWM_PIN, true);
 
 Ultrasonic left_ultrasonic(LEFT_ULTRASONIC_TRIG_PIN, LEFT_ULTRASONIC_ECHO_PIN);
-const float BACK_ULTRASONIC_OFFSET_CENTIMETERS = 1.0;
+const double BACK_ULTRASONIC_OFFSET_CENTIMETERS = 1.0;
 bool BACK_ULTRASONIC_REVERSED = true;
 Ultrasonic back_ultrasonic(BACK_ULTRASONIC_TRIG_PIN, BACK_ULTRASONIC_ECHO_PIN, 20000, BACK_ULTRASONIC_REVERSED, BACK_ULTRASONIC_OFFSET_CENTIMETERS);
 
@@ -67,11 +76,25 @@ Drivetrain drivetrain(
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("here");
   Log.begin(LOG_LEVEL_SILENT, &Serial);
-  drivetrain.initialize();
+
+  drivetrain.initialize(
+    MAGNETOMETER_MIN_X,
+    MAGNETOMETER_MAX_X,
+    MAGNETOMETER_MIN_Y,
+    MAGNETOMETER_MAX_Y,
+    MAGNETOMETER_MIN_Z,
+    MAGNETOMETER_MAX_Z
+  );
+  
+  drivetrain.magnetometer.compass.enableCalibration(false);
+  drivetrain.set_target_location(0, 0, TARGET_ORIENTATION_DEGREES);
 }
 
 void loop() {
   //drivetrain.update_measurements();
+  //delay(1000);
   drivetrain.update_towards_target_location(false, false);
+  //delay(1000);
 }

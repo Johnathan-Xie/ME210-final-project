@@ -11,12 +11,12 @@ class Drivetrain {
     Drivetrain(
       Motor& front_left_motor, Motor& front_right_motor, Motor& back_left_motor, Motor& back_right_motor,
       Ultrasonic& left_ultrasonic, Ultrasonic& back_ultrasonic,
-      float reference_zero_orientation,
-      float max_allowed_back_centimeters_change = 3.0, float max_allowed_left_centimeters_change = 3.0, float max_allowed_orientation_degrees_change = 5.0,
-      float begin_linear_slowdown_back_centimeters = 5.0, float stop_back_centimeters = 1.0,
-      float begin_linear_slowdown_left_centimeters = 5.0, float stop_left_centimeters = 1.0,
-      float begin_linear_slowdown_degrees = 10.0, float stop_degrees = 2.0,
-      float twist_divisor = 20.0
+      double reference_zero_orientation,
+      double max_allowed_back_centimeters_change = 3.0, double max_allowed_left_centimeters_change = 3.0, double max_allowed_orientation_degrees_change = 5.0,
+      double begin_linear_slowdown_back_centimeters = 5.0, double stop_back_centimeters = 1.0,
+      double begin_linear_slowdown_left_centimeters = 5.0, double stop_left_centimeters = 1.0,
+      double begin_linear_slowdown_degrees = 10.0, double stop_degrees = 2.0,
+      double twist_divisor = 20.0
     )
     : front_left_motor(front_left_motor), front_right_motor(front_right_motor), back_left_motor(back_left_motor), back_right_motor(back_right_motor),
       left_ultrasonic(left_ultrasonic), back_ultrasonic(back_ultrasonic),
@@ -26,9 +26,17 @@ class Drivetrain {
       begin_linear_slowdown_degrees(begin_linear_slowdown_degrees), stop_degrees(stop_degrees), magnetometer(52, 12), twist_divisor(twist_divisor)
       {}
 
-    void initialize();
-    void set_target_location(float left_centimeters, float back_centimeters, float orientation_degrees);
-    void set_movement(float drive, float strafe, float twist, bool heading_correction = true);
+    void initialize(
+      double magnetometer_min_x = 0,
+      double magnetometer_max_x = 0,
+      double magnetometer_min_y = 0,
+      double magnetometer_max_y = 0,
+      double magnetometer_min_z = 0,
+      double magnetometer_max_z = 0
+    );
+    double degrees_atan2(double x1, double x2);
+    void set_target_location(double left_centimeters, double back_centimeters, double orientation_degrees);
+    void set_movement(double drive, double strafe, double twist, bool heading_correction = true);
     void update_measurements();
     // returns true if already stopped at target location
     // not passing tolerances will just use default stop values
@@ -36,46 +44,48 @@ class Drivetrain {
       bool update_left = true,
       bool update_back = true,
       bool update_orientation = true,
-      float back_centimeters_tolerance = -1.0,
-      float left_centimeters_tolerance = -1.0,
-      float orientation_degrees_tolerance = -1.0
+      double back_centimeters_tolerance = -1.0,
+      double left_centimeters_tolerance = -1.0,
+      double orientation_degrees_tolerance = -1.0
     );
     
-    float get_last_measured_left_centimeters();
-    float get_last_measured_back_centimeters();
-    float get_last_measured_orientation_degrees();
+    double get_last_measured_left_centimeters();
+    double get_last_measured_back_centimeters();
+    double get_last_measured_orientation_degrees();
 
-    float get_left_distance_to_target_location();
-    float get_back_distance_to_target_location();
-    float get_degrees_to_target_orientation();
+    double get_left_distance_to_target_location();
+    double get_back_distance_to_target_location();
+    double get_degrees_to_target_orientation();
+
+    Magnetometer magnetometer;
   private:
     Motor front_left_motor;
     Motor front_right_motor;
     Motor back_left_motor;
     Motor back_right_motor;
-    Magnetometer magnetometer;
+    
     Ultrasonic left_ultrasonic;
     Ultrasonic back_ultrasonic;
     
-    float reference_zero_orientation = 0;
-    float target_back_centimeters = 0;
-    float target_left_centimeters = 0;
-    float target_orientation_degrees = 0;
+    double reference_zero_orientation = 0;
+    double target_back_centimeters = 0;
+    double target_left_centimeters = 0;
+    double target_orientation_degrees = 0;
     
-    float last_measured_back_centimeters = -1000;
-    float last_measured_left_centimeters = -1000;
-    float last_measured_orientation_degrees = -1000;
+    double last_measured_back_centimeters = -1000;
+    double last_measured_left_centimeters = -1000;
+    double last_measured_orientation_degrees = -1000;
     
-    float max_allowed_back_centimeters_change;
-    float max_allowed_left_centimeters_change;
-    float max_allowed_orientation_degrees_change;
+    double max_allowed_back_centimeters_change;
+    double max_allowed_left_centimeters_change;
+    double max_allowed_orientation_degrees_change;
 
-    float begin_linear_slowdown_back_centimeters = 5.0;
-    float stop_back_centimeters = 1.0;
-    float begin_linear_slowdown_left_centimeters = 5.0;
-    float stop_left_centimeters = 1.0;
-    float begin_linear_slowdown_degrees = 100.0;
-    float stop_degrees = 30.0;
-    float twist_divisor = 20.0;
-    float max_twist = 0.2;
+    double begin_linear_slowdown_back_centimeters = 5.0;
+    double stop_back_centimeters = 1.0;
+    double begin_linear_slowdown_left_centimeters = 5.0;
+    double stop_left_centimeters = 1.0;
+    double begin_linear_slowdown_degrees = 100.0;
+    double stop_degrees = 30.0;
+    double twist_divisor = 20.0;
+    double max_twist = 0.2;
 };
