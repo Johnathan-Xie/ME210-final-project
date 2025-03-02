@@ -98,4 +98,5 @@ class Drivetrain {
     double max_strafe = 0.2;
     double max_twist = 0.2;
     
+    double max_degrees_error_to_still_move = 30.0;
 };

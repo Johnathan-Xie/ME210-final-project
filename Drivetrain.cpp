@@ -89,14 +89,7 @@ double Drivetrain::get_back_distance_to_target_location() {
 double Drivetrain::get_degrees_to_target_orientation() {
     return degrees_atan2(this->target_orientation_degrees, this->last_measured_orientation_degrees);
 }
-/*
-double Drivetrain::get_distance_to_target_location() {
-    return sqrt(
-        sq(this->get_left_distance_to_target_location()) +
-        sq(this->get_back_distance_to_target_location())
-    );
-}
-*/
+
 double Drivetrain::degrees_atan2(double a, double b) {
     // Computes the difference between angles a and b (in degrees)
     double diff_rad = atan2(sin(radians(a - b)), cos(radians(a - b)));
@@ -128,8 +121,8 @@ void Drivetrain::update_measurements(
     if (update_orientation) {
         double new_orientation_degrees = degrees_atan2((double)magnetometer.GetHeadingDegrees(), this->reference_zero_orientation);
         this->last_measured_orientation_degrees = new_orientation_degrees;
-        //if ((abs(degrees_atan2(new_orientation_degrees, this->last_measured_orientation_degrees)) <= this->max_allowed_orientation_degrees_change) || this->last_measured_orientation_degrees < -999) {   
-        //}
+        if ((abs(degrees_atan2(new_orientation_degrees, this->last_measured_orientation_degrees)) <= this->max_allowed_orientation_degrees_change) || this->last_measured_orientation_degrees < -999) {   
+        }
         Log.infoln("updated last_measured_orientation_degrees %F", this->last_measured_orientation_degrees);
     }
 }
@@ -160,10 +153,10 @@ bool Drivetrain::update_towards_target_location(
     double left_distance_to_target = this->get_left_distance_to_target_location();
     double back_distance_to_target = this->get_back_distance_to_target_location();
     double degrees_to_target_orientation = this->get_degrees_to_target_orientation();
-    if (!update_left|| abs(left_distance_to_target) < this->stop_left_centimeters) {
+    if (!update_left|| abs(left_distance_to_target) < this->stop_left_centimeters || abs(degrees_to_target_orientation) > this->max_degrees_error_to_still_move) {
         left_distance_to_target = 0;
     }
-    if (!update_back || abs(back_distance_to_target) < this->stop_back_centimeters) {
+    if (!update_back || abs(back_distance_to_target) < this->stop_back_centimeters || abs(degrees_to_target_orientation) > this->max_degrees_error_to_still_move) {
         back_distance_to_target = 0;
     }
     if (!update_orientation || (abs(degrees_to_target_orientation) < this->stop_degrees)) {
