@@ -27,28 +27,34 @@ class Drivetrain {
       {}
 
     void initialize(
-      double magnetometer_min_x = 0,
-      double magnetometer_max_x = 0,
-      double magnetometer_min_y = 0,
-      double magnetometer_max_y = 0,
-      double magnetometer_min_z = 0,
-      double magnetometer_max_z = 0
+        double magnetometer_min_x = 0,
+        double magnetometer_max_x = 0,
+        double magnetometer_min_y = 0,
+        double magnetometer_max_y = 0,
+        double magnetometer_min_z = 0,
+        double magnetometer_max_z = 0
     );
     double degrees_atan2(double x1, double x2);
     void set_target_location(double left_centimeters, double back_centimeters, double orientation_degrees);
     void set_movement(double drive, double strafe, double twist, bool heading_correction = true);
-    void update_measurements();
+    void update_measurements(
+      bool update_left = true,
+      bool update_back = true,
+      bool update_orientation = true
+    );
+
     // returns true if already stopped at target location
     // not passing tolerances will just use default stop values
     bool update_towards_target_location(
       bool update_left = true,
       bool update_back = true,
       bool update_orientation = true,
+      bool heading_correction = true,
       double back_centimeters_tolerance = -1.0,
       double left_centimeters_tolerance = -1.0,
       double orientation_degrees_tolerance = -1.0
     );
-    
+    double clip_max(double value, double max_value);
     double get_last_measured_left_centimeters();
     double get_last_measured_back_centimeters();
     double get_last_measured_orientation_degrees();
@@ -87,5 +93,9 @@ class Drivetrain {
     double begin_linear_slowdown_degrees = 100.0;
     double stop_degrees = 30.0;
     double twist_divisor = 20.0;
+    
+    double max_drive = 0.2;
+    double max_strafe = 0.2;
     double max_twist = 0.2;
+    
 };

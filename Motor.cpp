@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "Motor.h"
 #define PWM_MAX_VALUE 255
-#define PWM_MIN_VALUE 55
+#define PWM_MIN_VALUE 150
 
 Motor::Motor(uint8_t direction_pin_0, uint8_t direction_pin_1, uint8_t pwm_pin, bool reversed = false){
   this->direction_pin_0 = direction_pin_0;

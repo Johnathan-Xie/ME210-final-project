@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "Ultrasonic.h"
-
+#include "ArduinoLog.h"
 Ultrasonic::Ultrasonic(uint8_t trigPin, uint8_t echoPin, unsigned long timeOut, bool reversed=false, float offset=0) {
   trig = trigPin;
   echo = echoPin;
@@ -21,7 +21,6 @@ unsigned int Ultrasonic::timing() {
   digitalWrite(trig, HIGH);
   delayMicroseconds(10);
   digitalWrite(trig, LOW);
-
   if (threePins)
     pinMode(trig, INPUT);
   
@@ -29,7 +28,6 @@ unsigned int Ultrasonic::timing() {
   while(!digitalRead(echo) && (micros() - previousMicros) <= timeout); // wait for the echo pin HIGH or timeout
   previousMicros = micros();
   while(digitalRead(echo)  && (micros() - previousMicros) <= timeout); // wait for the echo pin LOW or timeout
-
   return micros() - previousMicros; // duration
 }
 

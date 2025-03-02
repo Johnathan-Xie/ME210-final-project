@@ -103,30 +103,55 @@ double Drivetrain::degrees_atan2(double a, double b) {
     return degrees(diff_rad);
 }
 
-void Drivetrain::update_measurements() {
-    double new_left_centimeters = (double)this->left_ultrasonic.read();
-    double new_back_centimeters = (double)this->back_ultrasonic.read();
-    double new_orientation_degrees = degrees_atan2((double)magnetometer.GetHeadingDegrees(), this->reference_zero_orientation);
+void Drivetrain::update_measurements(
+    bool update_left = true,
+    bool update_back = true,
+    bool update_orientation = true
+) {
+    if (update_back) {
+        double new_back_centimeters = (double)this->back_ultrasonic.read();
+        this->last_measured_back_centimeters = new_back_centimeters;
+        if ((abs(new_back_centimeters - this->last_measured_back_centimeters) <= this->max_allowed_back_centimeters_change) || this->last_measured_back_centimeters < -999) {
+            
+        }
+        Log.infoln("updated back centimeters %F", this->last_measured_back_centimeters);
+    }
+    if (update_left) {
+        double new_left_centimeters = (double)this->left_ultrasonic.read();
+        this->last_measured_left_centimeters = new_left_centimeters;
+        if ((abs(new_left_centimeters - this->last_measured_left_centimeters) <= this->max_allowed_left_centimeters_change) || this->last_measured_back_centimeters < -999) {
+            
+        }
+        Log.infoln("updated left centimeters %F", this->last_measured_left_centimeters);
+    }
     
-    this->last_measured_left_centimeters = new_left_centimeters;
-    if ((abs(new_left_centimeters - this->last_measured_left_centimeters) <= this->max_allowed_left_centimeters_change) || this->last_measured_back_centimeters < -999) {
+    if (update_orientation) {
+        double new_orientation_degrees = degrees_atan2((double)magnetometer.GetHeadingDegrees(), this->reference_zero_orientation);
+        this->last_measured_orientation_degrees = new_orientation_degrees;
+        //if ((abs(degrees_atan2(new_orientation_degrees, this->last_measured_orientation_degrees)) <= this->max_allowed_orientation_degrees_change) || this->last_measured_orientation_degrees < -999) {   
+        //}
+        Log.infoln("updated last_measured_orientation_degrees %F", this->last_measured_orientation_degrees);
     }
-    this->last_measured_back_centimeters = new_back_centimeters;
-    if ((abs(new_back_centimeters - this->last_measured_back_centimeters) <= this->max_allowed_back_centimeters_change) || this->last_measured_back_centimeters < -999) {
+}
+
+double Drivetrain::clip_max(
+    double value,
+    double max_value
+) {
+    if (value < 0) {
+        return max(value, -max_value);
+    } else if (value < 0.01) {
+        return 0;
+    } else {
+        return min(value, max_value);
     }
-    this->last_measured_orientation_degrees = new_orientation_degrees;
-    if ((abs(degrees_atan2(new_orientation_degrees, this->last_measured_orientation_degrees)) <= this->max_allowed_orientation_degrees_change) || this->last_measured_orientation_degrees < -999) {
-        
-    }
-    Log.infoln("updated left centimeters %F", this->last_measured_left_centimeters);
-    Log.infoln("updated back centimeters %F", this->last_measured_back_centimeters);
-    Log.infoln("updated last_measured_orientation_degrees %F", this->last_measured_orientation_degrees);
 }
 
 bool Drivetrain::update_towards_target_location(
     bool update_left = true,
     bool update_back = true,
     bool update_orientation = true,
+    bool heading_correction = true,
     double back_centimeters_tolerance = -1.0,
     double left_centimeters_tolerance = -1.0,
     double orientation_degrees_tolerance = -1.0
@@ -151,15 +176,14 @@ bool Drivetrain::update_towards_target_location(
         drive = drive / max_distance;
         strafe = strafe / max_distance;
     }
-    
+    drive = this->clip_max(drive, this->max_drive);
+    strafe = this->clip_max(strafe, this->max_strafe);
+
     double twist = degrees_to_target_orientation / twist_divisor;
-    if (twist < 0) {
-        twist = max(twist, -this->max_twist);
-    } else if (twist < 0.01) {
-        twist = 0;
-    } else {
-        twist = min(twist, this->max_twist);
-    }
+    twist = this->clip_max(twist, this->max_twist);
+    
+    
+    /*
     if (abs(left_distance_to_target) < this->begin_linear_slowdown_left_centimeters) {
         drive = drive * (abs(left_distance_to_target) - this->stop_left_centimeters)
                         / (this->begin_linear_slowdown_left_centimeters - this->stop_left_centimeters);
@@ -168,14 +192,16 @@ bool Drivetrain::update_towards_target_location(
         strafe = strafe * (abs(back_distance_to_target) - this->stop_back_centimeters)
                         / (this->begin_linear_slowdown_back_centimeters - this->stop_back_centimeters);
     }
+    */
     if (abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees || 180 - abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees) {
         twist = twist * abs((abs(degrees_to_target_orientation) - this->stop_degrees)
                         / (this->begin_linear_slowdown_degrees - this->stop_degrees));
     }
+    
     Log.infoln("drive: %F", drive);
     Log.infoln("strafe: %F", strafe);
     Log.infoln("twist: %F", twist);
-    this->set_movement(drive, strafe, twist);
+    this->set_movement(drive, strafe, twist, heading_correction);
     if (left_centimeters_tolerance < 0) {
         left_centimeters_tolerance = this->stop_left_centimeters;
     }
@@ -185,10 +211,13 @@ bool Drivetrain::update_towards_target_location(
     if (orientation_degrees_tolerance < 0) {
         orientation_degrees_tolerance = this->stop_degrees;
     }
+    Log.infoln("left_distance_to_target: %F", left_distance_to_target);
+    Log.infoln("back_distance_to_target: %F", back_distance_to_target);
+    Log.infoln("degrees_to_target_orientation: %F", degrees_to_target_orientation);
     bool all_within_tolerance = (
-        (left_distance_to_target < left_centimeters_tolerance) &&
-        (back_distance_to_target < back_centimeters_tolerance) &&
-        (degrees_to_target_orientation < orientation_degrees_tolerance)
+        (abs(left_distance_to_target) < left_centimeters_tolerance) &&
+        (abs(back_distance_to_target) < back_centimeters_tolerance) &&
+        (abs(degrees_to_target_orientation) < orientation_degrees_tolerance)
     );
     Log.infoln("All within tolerance: %d", all_within_tolerance);
     return all_within_tolerance;

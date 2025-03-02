@@ -18,6 +18,8 @@
         "limits": "cpp",
         "random": "cpp",
         "algorithm": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "ostream": "cpp",
+        "*.tcc": "cpp"
     }
 }
