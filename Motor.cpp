@@ -27,7 +27,6 @@ void Motor::set_speed(float speed) {
   if (this->reversed) {
     forward = !forward;
   }
-  
   if (pwm_value == PWM_MIN_VALUE) {
     digitalWrite(this->direction_pin_0, HIGH);
     digitalWrite(this->direction_pin_1, HIGH);

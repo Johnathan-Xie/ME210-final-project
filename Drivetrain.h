@@ -4,6 +4,7 @@
 #include "Ultrasonic.h"
 #include "Magnetometer.h"
 #include "DFRobot_QMC5883.h"
+#include "IMU.h"
 
 // Potentially add provision for integrating for location
 class Drivetrain {
@@ -23,17 +24,10 @@ class Drivetrain {
       reference_zero_orientation(reference_zero_orientation),
       begin_linear_slowdown_back_centimeters(begin_linear_slowdown_back_centimeters), stop_back_centimeters(stop_back_centimeters),
       begin_linear_slowdown_left_centimeters(begin_linear_slowdown_left_centimeters), stop_left_centimeters(stop_left_centimeters),
-      begin_linear_slowdown_degrees(begin_linear_slowdown_degrees), stop_degrees(stop_degrees), magnetometer(52, 12), twist_divisor(twist_divisor)
+      begin_linear_slowdown_degrees(begin_linear_slowdown_degrees), stop_degrees(stop_degrees), heading_indicator(), twist_divisor(twist_divisor)
       {}
 
-    void initialize(
-        double magnetometer_min_x = 0,
-        double magnetometer_max_x = 0,
-        double magnetometer_min_y = 0,
-        double magnetometer_max_y = 0,
-        double magnetometer_min_z = 0,
-        double magnetometer_max_z = 0
-    );
+    void initialize();
     double degrees_atan2(double x1, double x2);
     void set_target_location(double left_centimeters, double back_centimeters, double orientation_degrees);
     void set_movement(double drive, double strafe, double twist, bool heading_correction = true);
@@ -63,7 +57,7 @@ class Drivetrain {
     double get_back_distance_to_target_location();
     double get_degrees_to_target_orientation();
 
-    Magnetometer magnetometer;
+    IMU heading_indicator;
   private:
     Motor front_left_motor;
     Motor front_right_motor;

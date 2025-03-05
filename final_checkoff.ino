@@ -1,9 +1,16 @@
 /*
+#define USE_TIMER_2 true
+
 #include <Arduino.h>
 #include "Drivetrain.h"
 #include "ArduinoLog.h"
 #include <Wire.h>
 #include <Servo.h>
+
+#include <TimerInterrupt.h>
+#include <TimerInterrupt.hpp>
+#include <ISR_Timer.h>
+#include <ISR_Timer.hpp>
 
 const int MAGNETOMETER_DECLINATION_DEGS = 12;
 const int MAGNETOMETER_DECLINATION_MINS = 52;
@@ -33,7 +40,7 @@ const int BACK_ULTRASONIC_ECHO_PIN = A1;
 
 const int DUMP_SERVO_PIN = A2;
 
-const double REFERENCE_ZERO_ORIENTATION = -115;
+const double REFERENCE_ZERO_ORIENTATION = -120;
 const double MAX_ALLOWED_BACK_CENTIMETERS_CHANGE = 100.0;
 const double MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE = 100.0;
 const double MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE = 360.0;
@@ -72,26 +79,27 @@ const double RIGHT_MIDPOINT_CENTIMETERS_BACK = 64.0;
 const double TOP_RIGHT_CENTIMETERS_LEFT = 200.0;
 const double TOP_RIGHT_CENTIMETERS_BACK = 89.0;
 
-const double TOP_LEFT_RIGHT_OF_BUCKET_CENTIMETERS_LEFT = 54.0;
-const double TOP_LEFT_RIGHT_OF_BUCKET_CENTIMETERS_BACK = 89.0;
+const double DUMPING_CENTIMETERS_LEFT = 54.0;
+const double DUMPING_CENTIMETERS_BACK = 89.0;
 
-const double MIDPOINT_BEFORE_DUMP_POSITION_CENTIMETERS_LEFT = 54.0;
-const double MIDPOINT_BEFORE_DUMP_POSITION_CENTIMETERS_BACK = 44.0;
+const double DUMPING_SERVO_DUMP_ANGLE = 180;
+const double DUMPING_SERVO_NOT_DUMPING_ANGLE = 60;
+const double DUMPING_SERVO_DELAY_MILLIS = 5000;
 
-const double DUMP_POSITION_CENTIMETERS_LEFT = 22.0;
-const double DUMP_POSITION_CENTIMETERS_BACK = 44.0;
+
 const bool USE_MAGNETOMETER_WHILE_MOVING_ORIENTATION = true;
 const bool USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING = false;
+
+
 typedef enum {
     STATE_ORIENTING_FORWARD,
     STATE_MOVING_TO_IGNITER,
     STATE_MOVING_TO_RIGHT_MIDPOINT,
     STATE_MOVING_TO_MID_MIDPOINT,
     STATE_MOVING_TO_TOP_RIGHT,
-    STATE_MOVING_TO_TOP_LEFT_RIGHT_OF_BUCKET,
-    STATE_MOVING_TO_MIDPOINT_BEFORE_DUMP_POSITION,
-    STATE_MOVING_TO_DUMP_POSITION,
-    STATE_DUMPING
+    STATE_MOVING_TO_DUMP,
+    STATE_DUMPING,
+    STATE_MOVING_TO_CUSTOMER_WINDOW
 } States_t;
 
 States_t state;
@@ -106,6 +114,8 @@ const double BACK_ULTRASONIC_OFFSET_CENTIMETERS = 91.0;
 bool BACK_ULTRASONIC_REVERSED = true;
 Ultrasonic back_ultrasonic(BACK_ULTRASONIC_TRIG_PIN, BACK_ULTRASONIC_ECHO_PIN, 20000, BACK_ULTRASONIC_REVERSED, BACK_ULTRASONIC_OFFSET_CENTIMETERS);
 
+Servo dump_servo;
+
 Drivetrain drivetrain(
     front_left_motor, front_right_motor, back_left_motor, back_right_motor,
     left_ultrasonic, back_ultrasonic,
@@ -115,6 +125,11 @@ Drivetrain drivetrain(
     BEGIN_LINEAR_SLOWDOWN_LEFT_CENTIMETERS, STOP_LEFT_CENTIMETERS,
     BEGIN_LINEAR_SLOWDOWN_DEGREES, STOP_DEGREES
 );
+
+void stop_dump_servo() {
+    state = STATE_MOVING_TO_RIGHT_MIDPOINT;
+    dump_servo.write(DUMPING_SERVO_NOT_DUMPING_ANGLE);
+}
 
 void setup() {
     Serial.begin(9600);
@@ -130,6 +145,9 @@ void setup() {
     );
     state = STATE_ORIENTING_FORWARD;
     drivetrain.magnetometer.compass.enableCalibration(false);
+    ITimer2.init();
+    dump_servo.attach(DUMP_SERVO_PIN);
+    dump_servo.write(DUMPING_SERVO_NOT_DUMPING_ANGLE);
 }
 
 void log_state() {
@@ -146,7 +164,7 @@ void log_state() {
       case STATE_MOVING_TO_TOP_RIGHT:
         Log.infoln("STATE_MOVING_TO_TOP_RIGHT");
         break;
-      case STATE_MOVING_TO_TOP_LEFT_RIGHT_OF_BUCKET:
+      case STATE_MOVING_TO_DUMP:
         Log.infoln("STATE_MOVING_TO_TOP_LEFT_RIGHT_OF_BUCKET");
         break;
     }
@@ -181,15 +199,20 @@ void loop() {
         case STATE_MOVING_TO_TOP_RIGHT:
             drivetrain.set_target_location(TOP_RIGHT_CENTIMETERS_LEFT, TOP_RIGHT_CENTIMETERS_BACK, TARGET_ORIENTATION_DEGREES);
             if (drivetrain.update_towards_target_location(true, true, USE_MAGNETOMETER_WHILE_MOVING_ORIENTATION, USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING)) {
-                state = STATE_MOVING_TO_TOP_LEFT_RIGHT_OF_BUCKET;
+                state = STATE_MOVING_TO_DUMP;
             }
             break;
-        case STATE_MOVING_TO_TOP_LEFT_RIGHT_OF_BUCKET:
-            drivetrain.set_target_location(TOP_LEFT_RIGHT_OF_BUCKET_CENTIMETERS_LEFT, TOP_LEFT_RIGHT_OF_BUCKET_CENTIMETERS_BACK, TARGET_ORIENTATION_DEGREES);
+        case STATE_MOVING_TO_DUMP:
+            drivetrain.set_target_location(DUMPING_CENTIMETERS_LEFT, DUMPING_CENTIMETERS_BACK, TARGET_ORIENTATION_DEGREES);
             if (drivetrain.update_towards_target_location(true, true, USE_MAGNETOMETER_WHILE_MOVING_ORIENTATION, USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING)) {
-
+                state = STATE_DUMPING;
+                if (!ITimer2.attachInterruptInterval(DUMPING_SERVO_DELAY_MILLIS, stop_dump_servo)) {
+                    Log.errorln("Could not attach interrupt for %d", DUMPING_SERVO_DELAY_MILLIS);
+                }
             }
             break;
+        case STATE_DUMPING:
+            dump_servo.write(DUMPING_SERVO_DUMP_ANGLE);
         default:
             Serial.println("Unknown state");
         

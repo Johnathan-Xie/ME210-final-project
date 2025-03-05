@@ -3,24 +3,9 @@
 #include "Drivetrain.h"
 #include "ArduinoLog.h"
 
-void Drivetrain::initialize(
-    double magnetometer_min_x = 0,
-    double magnetometer_max_x = 0,
-    double magnetometer_min_y = 0,
-    double magnetometer_max_y = 0,
-    double magnetometer_min_z = 0,
-    double magnetometer_max_z = 0
-)
+void Drivetrain::initialize()
 {
-    this->magnetometer.initialize();
-    this->magnetometer.compass.setMinMax(
-        magnetometer_min_x,
-        magnetometer_max_x,
-        magnetometer_min_y,
-        magnetometer_max_y,
-        magnetometer_min_z,
-        magnetometer_max_z
-    );
+    this->heading_indicator.initialize();
 }
 
 void Drivetrain::set_target_location(double left_centimeters, double back_centimeters, double orientation_degrees) {
@@ -119,7 +104,7 @@ void Drivetrain::update_measurements(
     }
     
     if (update_orientation) {
-        double new_orientation_degrees = degrees_atan2((double)magnetometer.GetHeadingDegrees(), this->reference_zero_orientation);
+        double new_orientation_degrees = degrees_atan2((double)heading_indicator.GetHeadingDegrees(), this->reference_zero_orientation);
         this->last_measured_orientation_degrees = new_orientation_degrees;
         if ((abs(degrees_atan2(new_orientation_degrees, this->last_measured_orientation_degrees)) <= this->max_allowed_orientation_degrees_change) || this->last_measured_orientation_degrees < -999) {   
         }
@@ -153,10 +138,11 @@ bool Drivetrain::update_towards_target_location(
     double left_distance_to_target = this->get_left_distance_to_target_location();
     double back_distance_to_target = this->get_back_distance_to_target_location();
     double degrees_to_target_orientation = this->get_degrees_to_target_orientation();
-    if (!update_left|| abs(left_distance_to_target) < this->stop_left_centimeters || abs(degrees_to_target_orientation) > this->max_degrees_error_to_still_move) {
+    // || abs(degrees_to_target_orientation) > this->max_degrees_error_to_still_move
+    if (!update_left|| abs(left_distance_to_target) < this->stop_left_centimeters) {
         left_distance_to_target = 0;
     }
-    if (!update_back || abs(back_distance_to_target) < this->stop_back_centimeters || abs(degrees_to_target_orientation) > this->max_degrees_error_to_still_move) {
+    if (!update_back || abs(back_distance_to_target) < this->stop_back_centimeters) {
         back_distance_to_target = 0;
     }
     if (!update_orientation || (abs(degrees_to_target_orientation) < this->stop_degrees)) {
@@ -186,10 +172,12 @@ bool Drivetrain::update_towards_target_location(
                         / (this->begin_linear_slowdown_back_centimeters - this->stop_back_centimeters);
     }
     */
+    /*
     if (abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees || 180 - abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees) {
         twist = twist * abs((abs(degrees_to_target_orientation) - this->stop_degrees)
                         / (this->begin_linear_slowdown_degrees - this->stop_degrees));
     }
+    */
     
     Log.infoln("drive: %F", drive);
     Log.infoln("strafe: %F", strafe);

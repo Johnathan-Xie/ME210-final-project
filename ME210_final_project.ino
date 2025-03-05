@@ -39,7 +39,7 @@ const int BACK_ULTRASONIC_ECHO_PIN = A1;
 
 const int DUMP_SERVO_PIN = A2;
 
-const double REFERENCE_ZERO_ORIENTATION = -120;
+const double REFERENCE_ZERO_ORIENTATION = 170;
 const double MAX_ALLOWED_BACK_CENTIMETERS_CHANGE = 100.0;
 const double MAX_ALLOWED_LEFT_CENTIMETERS_CHANGE = 100.0;
 const double MAX_ALLOWED_ORIENTATION_DEGREES_CHANGE = 360.0;
@@ -81,13 +81,18 @@ const double TOP_RIGHT_CENTIMETERS_BACK = 89.0;
 const double DUMPING_CENTIMETERS_LEFT = 54.0;
 const double DUMPING_CENTIMETERS_BACK = 89.0;
 
-const double DUMPING_SERVO_DUMP_ANGLE = 90;
-const double DUMPING_SERVO_NOT_DUMPING_ANGLE = 0;
+const double CUSTOMER_WINDOW_CENTIMETERS_LEFT = 200.0;
+const double CUSTOMER_WINDOW_CENTIMETERS_BACK = 15.0;
+
+const double CUSTOMER_WINDOW_WAITING_MILLIS = 5000;
+
+const double DUMPING_SERVO_DUMP_ANGLE = 60;
+const double DUMPING_SERVO_NOT_DUMPING_ANGLE = 180;
 const double DUMPING_SERVO_DELAY_MILLIS = 5000;
 
 
 const bool USE_MAGNETOMETER_WHILE_MOVING_ORIENTATION = true;
-const bool USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING = false;
+const bool USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING = true;
 
 
 typedef enum {
@@ -98,7 +103,8 @@ typedef enum {
     STATE_MOVING_TO_TOP_RIGHT,
     STATE_MOVING_TO_DUMP,
     STATE_DUMPING,
-    STATE_MOVING_TO_CUSTOMER_WINDOW
+    STATE_MOVING_TO_CUSTOMER_WINDOW,
+    STATE_MOVING_TO_RIGHT_MIDPOINT_THEN_CUSTOMER_WINDOW
 } States_t;
 
 States_t state;
@@ -130,22 +136,29 @@ void stop_dump_servo() {
     dump_servo.write(DUMPING_SERVO_NOT_DUMPING_ANGLE);
 }
 
+bool travel_to_location(
+  double centimeters_left, double centimeters_back, States_t state next_state,
+  double target_orientation = 0, 
+  double update_left = true, double update_back = true, double update_orientation = true, double heading_correction = true,
+  double timeout_millis = -1
+) {
+  drivetrain.set_target_location(centimeters_left, centimeters_back, target_orientation);
+  bool reached_location = drivetrain.update_towards_target_location(update_left, update_right, update_orientation, heading_correction);
+  if (reached_location) {
+    state = next_state;
+  }
+  return reached_location;
+}
+
 void setup() {
     Serial.begin(9600);
-    Log.begin(LOG_LEVEL_SILENT, &Serial);
+    Log.begin(LOG_LEVEL_INFO, &Serial);
     
-    drivetrain.initialize(
-      MAGNETOMETER_MIN_X,
-      MAGNETOMETER_MAX_X,
-      MAGNETOMETER_MIN_Y,
-      MAGNETOMETER_MAX_Y,
-      MAGNETOMETER_MIN_Z,
-      MAGNETOMETER_MAX_Z
-    );
+    drivetrain.initialize();
     state = STATE_ORIENTING_FORWARD;
-    drivetrain.magnetometer.compass.enableCalibration(false);
     ITimer2.init();
     dump_servo.attach(DUMP_SERVO_PIN);
+    dump_servo.write(DUMPING_SERVO_NOT_DUMPING_ANGLE);
 }
 
 void log_state() {
@@ -170,8 +183,21 @@ void log_state() {
 
 void loop() {
     log_state();
+    //drivetrain.set_movement(0.2, 0.0, 0.0, false);
+    //front_left_motor.set_speed(0.2);
+    //back_left_motor.set_speed(0.2);
+    
     switch (state) {
         case STATE_ORIENTING_FORWARD:
+        /*
+            travel_to_location(
+              STARTING_POSITION_CENTIMETERS_LEFT,
+              STARTING_POSITION_CENTIMETERS_RIGHT,
+              STATE_MOVING_TO_IGNITER,
+              TARGET_ORIENTATION_DEGREES,
+              false, false, true, false
+            )
+        */
             drivetrain.set_target_location(STARTING_POSITION_CENTIMETERS_LEFT, STARTING_POSITION_CENTIMTERS_BACK, TARGET_ORIENTATION_DEGREES);
             if (drivetrain.update_towards_target_location(false, false, true, false)) {
                 state = STATE_MOVING_TO_IGNITER;
@@ -211,8 +237,20 @@ void loop() {
             break;
         case STATE_DUMPING:
             dump_servo.write(DUMPING_SERVO_DUMP_ANGLE);
+            break;
+        case STATE_MOVING_TO_RIGHT_MIDPOINT_THEN_CUSTOMER_WINDOW:
+            drivetrain.set_target_location(RIGHT_MIDPOINT_CENTIMETERS_LEFT, RIGHT_MIDPOINT_CENTIMETERS_BACK, TARGET_ORIENTATION_DEGREES);
+            if (drivetrain.update_towards_target_location(true, true, USE_MAGNETOMETER_WHILE_MOVING_ORIENTATION, USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING)) {
+                state = STATE_MOVING_TO_CUSTOMER_WINDOW;
+            }
+            break;
+        case STATE_MOVING_TO_CUSTOMER_WINDOW:
+            drivetrain.set_target_location(RIGHT_MIDPOINT_CENTIMETERS_LEFT, RIGHT_MIDPOINT_CENTIMETERS_BACK, TARGET_ORIENTATION_DEGREES);
+              if (drivetrain.update_towards_target_location(true, true, USE_MAGNETOMETER_WHILE_MOVING_ORIENTATION, USE_MAGNETOMETER_FOR_HEADING_CORRECTION_WHILE_MOVING)) {
+                  state = STATE_MOVING_TO_CUSTOMER_WINDOW;
+              }
         default:
             Serial.println("Unknown state");
-        
+            break
     }
 }
