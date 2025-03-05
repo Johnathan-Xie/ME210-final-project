@@ -6,10 +6,12 @@
 #include <Wire.h>
 #include <Servo.h>
 
+/*
 #include <TimerInterrupt.h>
 #include <TimerInterrupt.hpp>
 #include <ISR_Timer.h>
 #include <ISR_Timer.hpp>
+*/
 
 const int MAGNETOMETER_DECLINATION_DEGS = 12;
 const int MAGNETOMETER_DECLINATION_MINS = 52;
@@ -161,7 +163,6 @@ void setup() {
     
     drivetrain.initialize();
     state = STATE_ORIENTING_FORWARD;
-    ITimer2.init();
     dump_servo.attach(DUMP_SERVO_PIN);
     dump_servo.write(DUMPING_SERVO_NOT_DUMPING_ANGLE);
 }
@@ -221,13 +222,15 @@ void loop() {
               DUMPING_CENTIMETERS_LEFT, DUMPING_CENTIMETERS_BACK, STATE_DUMPING, TARGET_ORIENTATION_DEGREES,
               true, true, CORRECT_ORIENTATION_WHILE_MOVING, USE_HEADING_CORRECTION_WHILE_MOVING
             )) {
-              if (!ITimer2.attachInterruptInterval(DUMPING_SERVO_DELAY_MILLIS, stop_dump_servo)) {
-                  Log.errorln("Could not attach interrupt for %d", DUMPING_SERVO_DELAY_MILLIS);
-              }
+              //if (!ITimer2.attachInterruptInterval(DUMPING_SERVO_DELAY_MILLIS, stop_dump_servo)) {
+              //    Log.errorln("Could not attach interrupt for %d", DUMPING_SERVO_DELAY_MILLIS);
+              //}
             }
             break;
         case STATE_DUMPING:
             dump_servo.write(DUMPING_SERVO_DUMP_ANGLE);
+            delay(DUMPING_SERVO_DELAY_MILLIS);
+            stop_dump_servo();
             break;
         case STATE_MOVING_TO_RIGHT_MIDPOINT_THEN_CUSTOMER_WINDOW:
             travel_to_location(
@@ -242,12 +245,14 @@ void loop() {
                   true, true, CORRECT_ORIENTATION_WHILE_MOVING, USE_HEADING_CORRECTION_WHILE_MOVING
                 )
             ) {
-                if (!ITimer2.attachInterruptInterval(STOP_AT_CUSTOMER_WINDOW_MILLIS, start_moving_from_customer_window)) {
-                    Log.errorln("Could not attach interrupt for %d", STOP_AT_CUSTOMER_WINDOW_MILLIS);
-                }
+                //if (!ITimer2.attachInterruptInterval(STOP_AT_CUSTOMER_WINDOW_MILLIS, start_moving_from_customer_window)) {
+                //    Log.errorln("Could not attach interrupt for %d", STOP_AT_CUSTOMER_WINDOW_MILLIS);
+                //}
             }
             break;
         case STATE_STOPPED_AT_CUSTOMER_WINDOW:
+            delay(STOP_AT_CUSTOMER_WINDOW_MILLIS);
+            start_moving_from_customer_window();
             break;
         default:
             Serial.println("Unknown state");
