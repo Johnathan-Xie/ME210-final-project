@@ -22,12 +22,6 @@ void Drivetrain::set_movement(double drive, double strafe, double twist, bool he
         drive = orig_drive * cos(heading) - orig_strafe * sin(heading);
         strafe = orig_drive * sin(heading) + orig_strafe * cos(heading);
     }
-    /*
-    Log.infoln("drive: %F", drive);
-    Log.infoln("strafe: %F", strafe);
-    Log.infoln("twist: %F", twist);   
-    */
-    
 
     double speeds[] = {
             (drive + strafe + twist),
@@ -173,9 +167,9 @@ bool Drivetrain::update_towards_target_location(
     }
     */
     /*
-    if (abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees || 180 - abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees) {
-        twist = twist * abs((abs(degrees_to_target_orientation) - this->stop_degrees)
-                        / (this->begin_linear_slowdown_degrees - this->stop_degrees));
+    if (abs(degrees_to_target_orientation) < this->begin_linear_slowdown_degrees) {
+        twist = twist * (abs(degrees_to_target_orientation) - this->stop_degrees)
+                        / (this->begin_linear_slowdown_degrees - this->stop_degrees);
     }
     */
     
