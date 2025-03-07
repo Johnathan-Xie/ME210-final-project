@@ -13,7 +13,7 @@ class Drivetrain {
       Motor& front_left_motor, Motor& front_right_motor, Motor& back_left_motor, Motor& back_right_motor,
       Ultrasonic& left_ultrasonic, Ultrasonic& back_ultrasonic,
       double reference_zero_orientation,
-      double max_allowed_back_centimeters_change = 3.0, double max_allowed_left_centimeters_change = 3.0, double max_allowed_orientation_degrees_change = 5.0,
+      double max_allowed_back_centimeters_change = 20.0, double max_allowed_left_centimeters_change = 20.0, double max_allowed_orientation_degrees_change = 5.0,
       double begin_linear_slowdown_back_centimeters = 5.0, double stop_back_centimeters = 1.0,
       double begin_linear_slowdown_left_centimeters = 5.0, double stop_left_centimeters = 1.0,
       double begin_linear_slowdown_degrees = 10.0, double stop_degrees = 2.0,
@@ -44,8 +44,8 @@ class Drivetrain {
       bool update_back = true,
       bool update_orientation = true,
       bool heading_correction = true,
-      double back_centimeters_tolerance = -1.0,
       double left_centimeters_tolerance = -1.0,
+      double back_centimeters_tolerance = -1.0,
       double orientation_degrees_tolerance = -1.0
     );
     double clip_max(double value, double max_value);
@@ -88,9 +88,14 @@ class Drivetrain {
     double stop_degrees = 30.0;
     double twist_divisor = 20.0;
     
-    double max_drive = 0.2;
-    double max_strafe = 0.2;
+    double max_drive = 0.5;
+    double max_strafe = 0.5;
     double max_twist = 0.2;
+
+    double left_centimeters_degrees_drift = 0;
+    //double min_twist = 0.2;
+    //double min_drive = 0.2;
+    //double min_strafe = 0.2;
     
     double max_degrees_error_to_still_move = 30.0;
 };

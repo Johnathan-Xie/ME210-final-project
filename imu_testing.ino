@@ -1,26 +1,4 @@
 #if 0
-
-#include <Arduino.h>
-#include "IMU.h"
-#include <Wire.h>
-#include "ArduinoLog.h"
-
-
-IMU heading_indicator;
-
-void setup() {
-  Serial.begin(9600);
-  heading_indicator.initialize();
-  Log.begin(LOG_LEVEL_INFO, &Serial);
-}
-
-void loop() {
-  float heading = heading_indicator.GetHeadingDegrees();
-  Log.infoln("Heading: %F", heading);
-  delay(100);
-}
-
-
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
@@ -252,6 +230,7 @@ void setup(void)
       }
       else
       {
+        /*
           Serial.println("\nFound Calibration for this sensor in EEPROM.");
           eeAddress += sizeof(long);
           EEPROM.get(eeAddress, calibrationData);
@@ -263,6 +242,7 @@ void setup(void)
   
           Serial.println("\n\nCalibration data loaded into BNO055");
           foundCalib = true;
+        */
       }
   
       delay(1000);

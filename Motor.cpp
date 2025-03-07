@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include "Motor.h"
+#include "ArduinoLog.h"
+
 #define PWM_MAX_VALUE 255
-#define PWM_MIN_VALUE 255
+#define PWM_MIN_VALUE 130
 
 Motor::Motor(uint8_t direction_pin_0, uint8_t direction_pin_1, uint8_t pwm_pin, bool reversed = false){
   this->direction_pin_0 = direction_pin_0;
@@ -17,13 +19,14 @@ Motor::Motor(uint8_t direction_pin_0, uint8_t direction_pin_1, uint8_t pwm_pin, 
 void Motor::set_speed(float speed) {
   bool forward;
   int pwm_value;
+  //Log.infoln("speed: %F", speed);
   if (speed == 0) {
     digitalWrite(this->direction_pin_0, HIGH);
     digitalWrite(this->direction_pin_1, HIGH);
     analogWrite(this->pwm_pin, 0);
   } else {
       if (speed > 0) {
-      forward = true;
+        forward = true;
       } else {
         forward = false;
       }
@@ -31,13 +34,21 @@ void Motor::set_speed(float speed) {
       if (this->reversed) {
         forward = !forward;
       }
-      analogWrite(this->pwm_pin, pwm_value);
-      if (forward) {
-        digitalWrite(this->direction_pin_0, LOW);
-        digitalWrite(this->direction_pin_1, HIGH);
-      } else {
-        digitalWrite(this->direction_pin_0, HIGH);
-        digitalWrite(this->direction_pin_1, LOW);
+      //Log.infoln("abs(pwm_value - this->previous_pwm_value) >= this->min_pwm_value_change %d", abs(pwm_value - this->previous_pwm_value) >= this->min_pwm_value_change);
+      //Log.infoln("this->previous_pwm_value < 0 %d", abs(pwm_value - this->previous_pwm_value) >= this->min_pwm_value_change);
+      //Log.infoln("forward != this->previous_forward %d", abs(pwm_value - this->previous_pwm_value) >= this->min_pwm_value_change);
+      if (abs(pwm_value - this->previous_pwm_value) >= this->min_pwm_value_change || this->previous_pwm_value < 0 || forward != this->previous_forward) {
+        analogWrite(this->pwm_pin, pwm_value);
+        //Log.infoln("%d", pwm_value);
+        if (forward) {
+          digitalWrite(this->direction_pin_0, LOW);
+          digitalWrite(this->direction_pin_1, HIGH);
+        } else {
+          digitalWrite(this->direction_pin_0, HIGH);
+          digitalWrite(this->direction_pin_1, LOW);
+        }
+        this->previous_pwm_value = pwm_value;
+        this->previous_forward = forward;
       }
   }
 }
